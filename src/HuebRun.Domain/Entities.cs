@@ -47,6 +47,7 @@ public class EventDistance
     public string BibPrefix { get; set; } = "";        // "A", "B", "C"
     public int Quota { get; set; }
     public int ReservedCount { get; set; }             // รวมที่จองไว้ + จ่ายแล้ว (อัปเดตแบบ atomic)
+    public int LastBibNumber { get; set; }             // ตัวนับเลขบิบล่าสุดของระยะนี้ (เพิ่มแบบ atomic ตอนจ่ายเงิน)
 
     public decimal Price { get; set; }
     public decimal? EarlyBirdPrice { get; set; }
@@ -158,6 +159,10 @@ public class Order
 
     public List<Registration> Registrations { get; set; } = new();
     public List<Payment> Payments { get; set; } = new();
+
+    // ออเดอร์ที่เลยเวลาแต่ job ยังไม่ได้เปลี่ยนสถานะ ให้ถือว่าหมดเวลาแล้ว
+    public OrderStatus GetEffectiveStatus(DateTime utcNow) =>
+        Status == OrderStatus.Pending && utcNow >= ExpiresAt ? OrderStatus.Expired : Status;
 }
 
 // ---------- Registration = นักวิ่ง 1 คน ----------
