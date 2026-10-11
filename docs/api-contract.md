@@ -40,7 +40,7 @@
 | GET | `/orders/{orderId}` | 5, 6 | สถานะ ยอด เวลาหมดอายุ รายชื่อนักวิ่ง |
 | GET | `/orders/{orderId}/payment` | 5 | ข้อมูลสำหรับสร้าง QR (payload PromptPay, ยอดที่ต้องโอน, ชื่อบัญชี) |
 | POST | `/orders/{orderId}/payment/slip` | 5 | อัปโหลดสลิป (multipart) |
-| GET | `/orders/{orderId}/tickets` | 6 | เลขบิบ + QR เช็กอินของแต่ละคน (เมื่อ `Paid`) |
+| GET | `/orders/{orderId}/tickets` | 6 | เลขบิบ + `checkInToken` (หน้าเว็บสร้าง QR เอง) เฉพาะ `Paid` ไม่งั้น `409 ORDER_NOT_PAID` |
 | POST | `/line/webhook` | – | follow/unfollow จาก LINE (ตรวจ signature) |
 | POST | `/auth/line/callback` | – | LINE Login callback เชื่อม `LineAccount` กับ Order |
 
@@ -72,6 +72,11 @@
 ข้อผิดพลาดที่ต้องรองรับในหน้าเว็บ: `409 QUOTA_FULL` (ระบุระยะ), `409 SHIRT_OUT_OF_STOCK`, `409 PROMO_EXHAUSTED`, `422 PROMO_INVALID`, `400 REGISTRATION_CLOSED`
 
 ฝั่งเซิร์ฟเวอร์ต้อง: คำนวณราคาเอง (ไม่เชื่อราคาจากหน้าเว็บ), ตรวจเวลาเปิด/ปิดรับ, จองโควตา/ไซซ์/โค้ดแบบ atomic, สร้าง `PayableAmount` ที่ไม่ซ้ำ, ตั้ง `ExpiresAt`
+
+สถานะที่ implement แล้ว (2026-10-11): validate/promo/create/GET order/tickets + job หมดเวลา ทุก 1 นาที
+error เพิ่มเติม: `409 PAYMENT_SLOT_BUSY` (เศษสตางค์ของยอดนี้เต็ม 99 ช่อง), `404 ORDER_NOT_FOUND`
+`GET /orders/{id}` ไม่ส่ง `medicalNote`, ผู้ติดต่อฉุกเฉิน, `checkInToken`; `status` แสดง `Expired` ทันทีเมื่อเลย `expiresAt`
+ยังไม่ทำ: `GET /orders/{id}/payment`, `POST /orders/{id}/payment/slip` (รอเลือกบริการตรวจสลิป)
 
 ## Admin
 
