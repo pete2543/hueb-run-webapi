@@ -106,12 +106,21 @@ public sealed class OrderService(AppDbContext db, TimeProvider time)
             if (used == 0) throw OrderErrors.Promo(PromoRejection.Exhausted);
         }
 
-        var payable = await PickPayableAmountAsync(ev.Id, price.Total, ct);
+        // ยอด 0 (โค้ดฟรี + รับเอง) ไม่ต้องโอน → ไม่ใช้เศษสตางค์ และจ่ายแล้วทันที
+        var isFree = price.Total == 0;
+        var payable = isFree ? 0m : await PickPayableAmountAsync(ev.Id, price.Total, ct);
         var sequence = await db.Database.SqlQuery<long>($"SELECT nextval('order_no_seq') AS \"Value\"").SingleAsync(ct);
 
         var order = BuildOrder(ev, request, data, promo, shipping, price, payable, sequence, now);
+        if (isFree)
+            order.Payments.Add(new Payment
+            {
+                Provider = PaymentProvider.Free, Status = PaymentStatus.Verified,
+                ExpectedAmount = 0, PaidAmount = 0, CreatedAt = now, VerifiedAt = now,
+            });
         db.Orders.Add(order);
         await db.SaveChangesAsync(ct);
+        if (isFree) await new OrderPaymentService(db).MarkPaidAsync(order.Id, now, ct);
         await tx.CommitAsync(ct);
 
         return new CreatedOrder(order.Id, order.OrderNo, order.Total, order.PayableAmount, order.ExpiresAt);
