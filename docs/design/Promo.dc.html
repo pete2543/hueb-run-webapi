@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>โปรโมชัน</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@500;600;700&family=Noto+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B1220}
+a{text-decoration:none;color:inherit}
+</style>
+</helmet>
+<div style="min-height: 900px; background: #0B1220; color: #F3F6FB; font-family: 'Noto Sans Thai', system-ui, sans-serif; line-height: 1.5">
+<div style="display: flex; flex-wrap: wrap; align-items: stretch; min-height: 900px">
+
+<div style="flex: 0 0 240px; box-sizing: border-box; background: #141D31; border-right: 1px solid #2A3857; padding: 24px 16px; display: flex; flex-direction: column; gap: 6px">
+<div style="font-family: 'Prompt', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: 0.08em; padding: 0 12px 18px">FUN<span style="color: #C6F432">RUN</span> <span style="font-weight: 500; font-size: 13px; color: #A3B0C8; letter-spacing: 0">Admin</span></div>
+<a href="Dashboard.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">แดชบอร์ด</a>
+<a href="Orders.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">ใบสมัคร</a>
+<a href="Admin.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; color: #A3B0C8"><div>ตรวจสลิป</div><div style="min-width: 24px; height: 24px; border-radius: 12px; background: #FFC857; color: #0B1220; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center">7</div></a>
+<a href="AdminRunners.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">นักวิ่ง &amp; เลขบิบ</a>
+<a href="Quota.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">ระยะ &amp; โควตา</a>
+<a href="Promo.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; background: #C6F432; color: #0B1220; font-weight: 600">โปรโมชัน</a>
+<a href="Checkin.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">เช็กอิน / รับของ</a>
+<a href="Broadcast.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">ประกาศ (LINE)</a>
+<a href="Refunds.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">คืนเงิน</a>
+<a href="Users.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">ผู้ใช้ &amp; สิทธิ์</a>
+<a href="Audit.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">Audit log</a>
+</div>
+
+<div style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px 32px 40px; display: flex; flex-direction: column; gap: 24px">
+
+<div>
+<h1 style="margin: 0; font-family: 'Prompt', sans-serif; font-size: 28px; font-weight: 600">โปรโมชัน</h1>
+<div style="font-size: 14px; color: #A3B0C8">Fun Run 2027 · ข้อมูลตัวอย่าง</div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+
+<div style="flex: 999 1 520px; min-width: 0; background: #141D31; border: 1px solid #2A3857; border-radius: 18px; overflow: hidden">
+<div style="overflow-x: auto">
+<table style="width: 100%; border-collapse: collapse; font-size: 14px; min-width: 620px">
+<thead>
+<tr style="text-align: left; color: #A3B0C8">
+<th style="padding: 14px 16px; font-weight: 500">โค้ด</th>
+<th style="padding: 14px 16px; font-weight: 500">ส่วนลด</th>
+<th style="padding: 14px 16px; font-weight: 500">ช่วงเวลา</th>
+<th style="padding: 14px 16px; font-weight: 500">ใช้แล้ว</th>
+<th style="padding: 14px 16px; font-weight: 500">สถานะ</th>
+</tr>
+</thead>
+<tbody>
+<tr style="border-top: 1px solid #2A3857">
+<td style="padding: 14px 16px; font-family: 'Prompt', sans-serif; font-weight: 600">EARLY10</td>
+<td style="padding: 14px 16px">฿50 ต่อใบสมัคร</td>
+<td style="padding: 14px 16px; color: #A3B0C8">[เริ่ม] – [สิ้นสุด]</td>
+<td style="padding: 14px 16px">61 / 200</td>
+<td style="padding: 14px 16px"><span style="display: inline-block; padding: 2px 10px; border-radius: 999px; background: #C6F432; color: #0B1220; font-size: 13px; font-weight: 600">เปิดใช้</span></td>
+</tr>
+<tr style="border-top: 1px solid #2A3857">
+<td style="padding: 14px 16px; font-family: 'Prompt', sans-serif; font-weight: 600">TEAM5</td>
+<td style="padding: 14px 16px">5%</td>
+<td style="padding: 14px 16px; color: #A3B0C8">ไม่จำกัดเวลา</td>
+<td style="padding: 14px 16px">12 / ไม่จำกัด</td>
+<td style="padding: 14px 16px"><span style="display: inline-block; padding: 2px 10px; border-radius: 999px; background: #C6F432; color: #0B1220; font-size: 13px; font-weight: 600">เปิดใช้</span></td>
+</tr>
+<tr style="border-top: 1px solid #2A3857">
+<td style="padding: 14px 16px; font-family: 'Prompt', sans-serif; font-weight: 600">VIP100</td>
+<td style="padding: 14px 16px">฿100 (ขั้นต่ำ ฿500)</td>
+<td style="padding: 14px 16px; color: #A3B0C8">[เริ่ม] – [สิ้นสุด]</td>
+<td style="padding: 14px 16px">20 / 20</td>
+<td style="padding: 14px 16px"><span style="display: inline-block; padding: 2px 10px; border-radius: 999px; background: #FF7A59; color: #0B1220; font-size: 13px; font-weight: 600">ครบจำนวน</span></td>
+</tr>
+<tr style="border-top: 1px solid #2A3857">
+<td style="padding: 14px 16px; font-family: 'Prompt', sans-serif; font-weight: 600">OLD2026</td>
+<td style="padding: 14px 16px">10%</td>
+<td style="padding: 14px 16px; color: #A3B0C8">[สิ้นสุดแล้ว]</td>
+<td style="padding: 14px 16px">0 / 50</td>
+<td style="padding: 14px 16px"><span style="display: inline-block; padding: 2px 10px; border-radius: 999px; border: 1px solid #A3B0C8; color: #A3B0C8; font-size: 13px; font-weight: 600">ปิดใช้</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div style="flex: 1 1 320px; min-width: 0; background: #141D31; border: 1px solid #2A3857; border-radius: 18px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<div style="font-family: 'Prompt', sans-serif; font-weight: 600">สร้างโค้ดใหม่</div>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #A3B0C8">โค้ด
+<input type="text" placeholder="เช่น SPRING50" style="font: inherit; color: #F3F6FB; background: #0B1220; border: 1px solid #2A3857; border-radius: 10px; padding: 0 12px; height: 44px; box-sizing: border-box; width: 100%">
+</label>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 14px; color: #A3B0C8">ประเภทส่วนลด</div>
+<div style="display: flex; gap: 8px">
+<div style="flex: 1; min-height: 44px; border-radius: 10px; border: 2px solid #C6F432; display: flex; align-items: center; justify-content: center; font-weight: 600">จำนวนเงิน</div>
+<div style="flex: 1; min-height: 44px; border-radius: 10px; border: 1px solid #2A3857; display: flex; align-items: center; justify-content: center; color: #A3B0C8">เปอร์เซ็นต์</div>
+</div>
+</div>
+<div style="display: flex; gap: 10px">
+<label style="flex: 1; display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #A3B0C8">มูลค่า
+<input type="text" placeholder="50" style="font: inherit; color: #F3F6FB; background: #0B1220; border: 1px solid #2A3857; border-radius: 10px; padding: 0 12px; height: 44px; box-sizing: border-box; width: 100%">
+</label>
+<label style="flex: 1; display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #A3B0C8">ใช้ได้ (ครั้ง)
+<input type="text" placeholder="ไม่จำกัด" style="font: inherit; color: #F3F6FB; background: #0B1220; border: 1px solid #2A3857; border-radius: 10px; padding: 0 12px; height: 44px; box-sizing: border-box; width: 100%">
+</label>
+</div>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #A3B0C8">ยอดขั้นต่ำ
+<input type="text" placeholder="ไม่มี" style="font: inherit; color: #F3F6FB; background: #0B1220; border: 1px solid #2A3857; border-radius: 10px; padding: 0 12px; height: 44px; box-sizing: border-box; width: 100%">
+</label>
+<div style="display: flex; gap: 10px">
+<label style="flex: 1; display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #A3B0C8">เริ่ม
+<input type="text" placeholder="วว/ดด/ปปปป" style="font: inherit; color: #F3F6FB; background: #0B1220; border: 1px solid #2A3857; border-radius: 10px; padding: 0 12px; height: 44px; box-sizing: border-box; width: 100%">
+</label>
+<label style="flex: 1; display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #A3B0C8">สิ้นสุด
+<input type="text" placeholder="วว/ดด/ปปปป" style="font: inherit; color: #F3F6FB; background: #0B1220; border: 1px solid #2A3857; border-radius: 10px; padding: 0 12px; height: 44px; box-sizing: border-box; width: 100%">
+</label>
+</div>
+<div style="min-height: 48px; border-radius: 12px; background: #C6F432; color: #0B1220; font-weight: 600; display: flex; align-items: center; justify-content: center">สร้างโค้ด</div>
+</div>
+
+</div>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

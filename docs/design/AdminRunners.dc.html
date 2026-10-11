@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>นักวิ่งและเลขบิบ</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@500;600;700&family=Noto+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B1220}
+a{text-decoration:none;color:inherit}
+</style>
+</helmet>
+<div style="min-height: 900px; background: #0B1220; color: #F3F6FB; font-family: 'Noto Sans Thai', system-ui, sans-serif; line-height: 1.5">
+<div style="display: flex; flex-wrap: wrap; align-items: stretch; min-height: 900px">
+
+<div style="flex: 0 0 240px; box-sizing: border-box; background: #141D31; border-right: 1px solid #2A3857; padding: 24px 16px; display: flex; flex-direction: column; gap: 6px">
+<div style="font-family: 'Prompt', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: 0.08em; padding: 0 12px 18px">FUN<span style="color: #C6F432">RUN</span> <span style="font-weight: 500; font-size: 13px; color: #A3B0C8; letter-spacing: 0">Admin</span></div>
+<a href="Dashboard.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">แดชบอร์ด</a>
+<a href="Orders.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">ใบสมัคร</a>
+<a href="Admin.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; color: #A3B0C8"><div>ตรวจสลิป</div><div style="min-width: 24px; height: 24px; border-radius: 12px; background: #FFC857; color: #0B1220; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center">7</div></a>
+<a href="AdminRunners.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; background: #C6F432; color: #0B1220; font-weight: 600">นักวิ่ง &amp; เลขบิบ</a>
+<a href="Quota.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">ระยะ &amp; โควตา</a>
+<a href="Promo.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">โปรโมชัน</a>
+<a href="Checkin.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">เช็กอิน / รับของ</a>
+<a href="Broadcast.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">ประกาศ (LINE)</a>
+<a href="Refunds.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">คืนเงิน</a>
+<a href="Users.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">ผู้ใช้ &amp; สิทธิ์</a>
+<a href="Audit.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">Audit log</a>
+</div>
+
+<div style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px 32px 40px; display: flex; flex-direction: column; gap: 24px">
+
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+<div>
+<h1 style="margin: 0; font-family: 'Prompt', sans-serif; font-size: 28px; font-weight: 600">นักวิ่ง &amp; เลขบิบ</h1>
+<div style="font-size: 14px; color: #A3B0C8">Fun Run 2027 · ข้อมูลตัวอย่าง</div>
+</div>
+<div style="display: flex; gap: 10px; flex-wrap: wrap">
+<input type="text" placeholder="ค้นหา เลขบิบ / ชื่อ / ทีม" aria-label="ค้นหา" style="font: inherit; color: #F3F6FB; background: #141D31; border: 1px solid #2A3857; border-radius: 12px; padding: 0 14px; height: 44px; box-sizing: border-box; min-width: 240px">
+<div style="min-height: 44px; padding: 0 18px; box-sizing: border-box; border-radius: 12px; border: 1px solid #C6F432; color: #C6F432; font-weight: 600; display: flex; align-items: center">Export Excel</div>
+</div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 14px">
+<div style="flex: 1 1 130px; background: #141D31; border: 1px solid #2A3857; border-radius: 16px; padding: 14px 16px"><div style="font-size: 13px; color: #A3B0C8">เสื้อ S</div><div style="font-family: 'Prompt', sans-serif; font-size: 24px; font-weight: 700">128</div></div>
+<div style="flex: 1 1 130px; background: #141D31; border: 1px solid #2A3857; border-radius: 16px; padding: 14px 16px"><div style="font-size: 13px; color: #A3B0C8">เสื้อ M</div><div style="font-family: 'Prompt', sans-serif; font-size: 24px; font-weight: 700">301</div></div>
+<div style="flex: 1 1 130px; background: #141D31; border: 1px solid #2A3857; border-radius: 16px; padding: 14px 16px"><div style="font-size: 13px; color: #A3B0C8">เสื้อ L</div><div style="font-family: 'Prompt', sans-serif; font-size: 24px; font-weight: 700">290</div></div>
+<div style="flex: 1 1 130px; background: #141D31; border: 1px solid #2A3857; border-radius: 16px; padding: 14px 16px"><div style="font-size: 13px; color: #A3B0C8">เสื้อ XL</div><div style="font-family: 'Prompt', sans-serif; font-size: 24px; font-weight: 700">173</div></div>
+</div>
+
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<div style="min-height: 36px; padding: 0 14px; box-sizing: border-box; border-radius: 999px; background: #C6F432; color: #0B1220; font-size: 14px; font-weight: 600; display: flex; align-items: center">ทุกระยะ</div>
+<div style="min-height: 36px; padding: 0 14px; box-sizing: border-box; border-radius: 999px; border: 1px solid #2A3857; color: #A3B0C8; font-size: 14px; display: flex; align-items: center">3 กม.</div>
+<div style="min-height: 36px; padding: 0 14px; box-sizing: border-box; border-radius: 999px; border: 1px solid #2A3857; color: #A3B0C8; font-size: 14px; display: flex; align-items: center">5 กม.</div>
+<div style="min-height: 36px; padding: 0 14px; box-sizing: border-box; border-radius: 999px; border: 1px solid #2A3857; color: #A3B0C8; font-size: 14px; display: flex; align-items: center">10 กม.</div>
+</div>
+
+<div style="background: #141D31; border: 1px solid #2A3857; border-radius: 18px; overflow: hidden">
+<div style="overflow-x: auto">
+<table style="width: 100%; border-collapse: collapse; font-size: 14px; min-width: 760px">
+<thead>
+<tr style="text-align: left; color: #A3B0C8">
+<th style="padding: 14px 16px; font-weight: 500">เลขบิบ</th>
+<th style="padding: 14px 16px; font-weight: 500">ชื่อ-นามสกุล</th>
+<th style="padding: 14px 16px; font-weight: 500">ระยะ</th>
+<th style="padding: 14px 16px; font-weight: 500">เสื้อ</th>
+<th style="padding: 14px 16px; font-weight: 500">ทีม</th>
+<th style="padding: 14px 16px; font-weight: 500">ใบสมัคร</th>
+<th style="padding: 14px 16px; font-weight: 500">เช็กอิน</th>
+</tr>
+</thead>
+<tbody>
+<tr style="border-top: 1px solid #2A3857">
+<td style="padding: 14px 16px; font-family: 'Prompt', sans-serif; font-weight: 600; color: #C6F432">B0127</td>
+<td style="padding: 14px 16px">สมชาย ใจดี</td>
+<td style="padding: 14px 16px">5 กม.</td>
+<td style="padding: 14px 16px">M</td>
+<td style="padding: 14px 16px; color: #A3B0C8">—</td>
+<td style="padding: 14px 16px; color: #A3B0C8">RUN27-000123</td>
+<td style="padding: 14px 16px"><span style="display: inline-block; padding: 2px 10px; border-radius: 999px; border: 1px solid #A3B0C8; color: #A3B0C8; font-size: 13px; font-weight: 600">ยังไม่มา</span></td>
+</tr>
+<tr style="border-top: 1px solid #2A3857">
+<td style="padding: 14px 16px; font-family: 'Prompt', sans-serif; font-weight: 600; color: #C6F432">C0044</td>
+<td style="padding: 14px 16px">วิภา รักษ์ดี</td>
+<td style="padding: 14px 16px">10 กม.</td>
+<td style="padding: 14px 16px">S</td>
+<td style="padding: 14px 16px; color: #A3B0C8">[ชื่อทีม]</td>
+<td style="padding: 14px 16px; color: #A3B0C8">RUN27-000123</td>
+<td style="padding: 14px 16px"><span style="display: inline-block; padding: 2px 10px; border-radius: 999px; border: 1px solid #A3B0C8; color: #A3B0C8; font-size: 13px; font-weight: 600">ยังไม่มา</span></td>
+</tr>
+<tr style="border-top: 1px solid #2A3857">
+<td style="padding: 14px 16px; font-family: 'Prompt', sans-serif; font-weight: 600; color: #C6F432">A0031</td>
+<td style="padding: 14px 16px">ธนา พัฒน์ผล</td>
+<td style="padding: 14px 16px">3 กม.</td>
+<td style="padding: 14px 16px">L</td>
+<td style="padding: 14px 16px; color: #A3B0C8">—</td>
+<td style="padding: 14px 16px; color: #A3B0C8">RUN27-000112</td>
+<td style="padding: 14px 16px"><span style="display: inline-block; padding: 2px 10px; border-radius: 999px; background: #C6F432; color: #0B1220; font-size: 13px; font-weight: 600">เช็กอินแล้ว</span></td>
+</tr>
+<tr style="border-top: 1px solid #2A3857">
+<td style="padding: 14px 16px; font-family: 'Prompt', sans-serif; font-weight: 600; color: #C6F432">B0128</td>
+<td style="padding: 14px 16px">มานี มีสุข</td>
+<td style="padding: 14px 16px">5 กม.</td>
+<td style="padding: 14px 16px">M</td>
+<td style="padding: 14px 16px; color: #A3B0C8">[ชื่อทีม]</td>
+<td style="padding: 14px 16px; color: #A3B0C8">RUN27-000110</td>
+<td style="padding: 14px 16px"><span style="display: inline-block; padding: 2px 10px; border-radius: 999px; background: #C6F432; color: #0B1220; font-size: 13px; font-weight: 600">เช็กอินแล้ว</span></td>
+</tr>
+<tr style="border-top: 1px solid #2A3857">
+<td style="padding: 14px 16px; font-family: 'Prompt', sans-serif; font-weight: 600; color: #C6F432">C0045</td>
+<td style="padding: 14px 16px">ปกรณ์ ศรีสุข</td>
+<td style="padding: 14px 16px">10 กม.</td>
+<td style="padding: 14px 16px">XL</td>
+<td style="padding: 14px 16px; color: #A3B0C8">—</td>
+<td style="padding: 14px 16px; color: #A3B0C8">RUN27-000112</td>
+<td style="padding: 14px 16px"><span style="display: inline-block; padding: 2px 10px; border-radius: 999px; border: 1px solid #FFC857; color: #FFC857; font-size: 13px; font-weight: 600">ส่งไปรษณีย์</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div style="font-size: 13px; color: #A3B0C8">เลขบิบออกอัตโนมัติเมื่อใบสมัครเป็น “ชำระแล้ว” (คำนำหน้าตามระยะ: A = 3 กม., B = 5 กม., C = 10 กม.)</div>
+
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

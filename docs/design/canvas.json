@@ -1,0 +1,214 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Admin.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "10 · ตรวจสลิป",
+      "w": 1280,
+      "x": 2720,
+      "y": 2100
+    },
+    "AdminRunners.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "11 · นักวิ่ง & เลขบิบ",
+      "w": 1280,
+      "x": 0,
+      "y": 3120
+    },
+    "Audit.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "18 · Audit log",
+      "w": 1280,
+      "x": 1360,
+      "y": 5160
+    },
+    "Broadcast.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "15 · ประกาศ LINE",
+      "w": 1280,
+      "x": 1360,
+      "y": 4140
+    },
+    "Checkin.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "14 · เช็กอิน / รับของ",
+      "w": 1280,
+      "x": 0,
+      "y": 4140
+    },
+    "Dashboard.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "8 · แดชบอร์ด",
+      "w": 1280,
+      "x": 0,
+      "y": 2100
+    },
+    "Distances.dc.html": {
+      "expand": "fill",
+      "h": 920,
+      "is_interactive": true,
+      "title": "2 · เลือกระยะ",
+      "w": 390,
+      "x": 470,
+      "y": 0
+    },
+    "LineChat.dc.html": {
+      "h": 844,
+      "title": "7 · แจ้งเตือนทาง LINE OA",
+      "w": 390,
+      "x": 2820,
+      "y": 0
+    },
+    "Main.dc.html": {
+      "expand": "fill",
+      "h": 1560,
+      "is_interactive": true,
+      "title": "1 · หน้าแรก (3D hero)",
+      "w": 390,
+      "x": 0,
+      "y": 0
+    },
+    "Orders.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "9 · ใบสมัคร",
+      "w": 1280,
+      "x": 1360,
+      "y": 2100
+    },
+    "Payment.dc.html": {
+      "expand": "fill",
+      "h": 1180,
+      "is_interactive": true,
+      "title": "5 · ชำระเงิน PromptPay",
+      "w": 390,
+      "x": 1880,
+      "y": 0
+    },
+    "Promo.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "13 · โปรโมชัน",
+      "w": 1280,
+      "x": 2720,
+      "y": 3120
+    },
+    "Quota.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "12 · ระยะ & โควตา",
+      "w": 1280,
+      "x": 1360,
+      "y": 3120
+    },
+    "Refunds.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "16 · คืนเงิน",
+      "w": 1280,
+      "x": 2720,
+      "y": 4140
+    },
+    "Runners.dc.html": {
+      "expand": "fill",
+      "h": 1500,
+      "is_interactive": true,
+      "title": "3 · ข้อมูลนักวิ่ง",
+      "w": 390,
+      "x": 940,
+      "y": 0
+    },
+    "Success.dc.html": {
+      "expand": "fill",
+      "h": 1300,
+      "is_interactive": true,
+      "title": "6 · สำเร็จ + QR เช็กอิน",
+      "w": 390,
+      "x": 2350,
+      "y": 0
+    },
+    "Summary.dc.html": {
+      "expand": "fill",
+      "h": 1500,
+      "is_interactive": true,
+      "title": "4 · สรุป ส่วนลด จัดส่ง",
+      "w": 390,
+      "x": 1410,
+      "y": 0
+    },
+    "Users.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "title": "17 · ผู้ใช้ & สิทธิ์",
+      "w": 1280,
+      "x": 0,
+      "y": 5160
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-10-08T15:12:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "t1": {
+      "kind": "title1",
+      "maxW": 3210,
+      "text": "Runner flow · สมัครวิ่งผ่านมือถือ",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "t2": {
+      "kind": "title1",
+      "maxW": 4000,
+      "text": "Admin · หลังบ้านจัดการงานวิ่ง",
+      "w": 240,
+      "x": 0,
+      "y": 1840
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Distances.dc.html",
+    "Runners.dc.html",
+    "Summary.dc.html",
+    "Payment.dc.html",
+    "Success.dc.html",
+    "LineChat.dc.html",
+    "Dashboard.dc.html",
+    "Orders.dc.html",
+    "Admin.dc.html",
+    "AdminRunners.dc.html",
+    "Quota.dc.html",
+    "Promo.dc.html",
+    "Checkin.dc.html",
+    "Broadcast.dc.html",
+    "Refunds.dc.html",
+    "Users.dc.html",
+    "Audit.dc.html"
+  ],
+  "pages": [],
+  "title": "Fun Run Registration Demo"
+}

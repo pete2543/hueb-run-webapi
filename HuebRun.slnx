@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/HuebRun.Api/HuebRun.Api.csproj" />
+    <Project Path="src/HuebRun.Domain/HuebRun.Domain.csproj" />
+    <Project Path="src/HuebRun.Infrastructure/HuebRun.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/HuebRun.Tests/HuebRun.Tests.csproj" />
+  </Folder>
+</Solution>
