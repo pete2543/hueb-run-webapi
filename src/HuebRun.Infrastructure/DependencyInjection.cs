@@ -1,3 +1,4 @@
+using HuebRun.Infrastructure.Orders;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,6 +11,7 @@ public static class DependencyInjection
     {
         services.AddDbContext<AppDbContext>(o =>
             o.UseNpgsql(config.GetConnectionString("DefaultConnection") ?? ""));
+        services.AddScoped<OrderService>();
         return services;
     }
 }

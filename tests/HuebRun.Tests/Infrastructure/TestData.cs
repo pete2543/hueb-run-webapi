@@ -27,4 +27,18 @@ public static class TestData
         await db.SaveChangesAsync();
         return e;
     }
+
+    // งานพร้อมรับสมัคร: 5K early bird 400 (ปกติ 500) ถึง 2026-11-30, 10K 700, เสื้อ M/L, รับเอง/EMS 60
+    public static Task<Event> CreateRegistrationEventAsync(AppDbContext db, Action<Event>? configure = null) =>
+        CreateEventAsync(db, e =>
+        {
+            e.Distances.Add(new EventDistance { Name = "5K", DistanceKm = 5, BibPrefix = "B", Quota = 100,
+                Price = 500, EarlyBirdPrice = 400, EarlyBirdEndsAt = Utc(2026, 11, 30) });
+            e.Distances.Add(new EventDistance { Name = "10K", DistanceKm = 10, BibPrefix = "C", Quota = 100, Price = 700 });
+            e.ShirtSizes.Add(new EventShirtSize { Size = "M", Stock = 100 });
+            e.ShirtSizes.Add(new EventShirtSize { Size = "L", Stock = 100 });
+            e.ShippingOptions.Add(new ShippingOption { Type = ShippingType.Pickup, Name = "รับเอง", Fee = 0 });
+            e.ShippingOptions.Add(new ShippingOption { Type = ShippingType.Post, Name = "EMS", Fee = 60 });
+            configure?.Invoke(e);
+        });
 }
