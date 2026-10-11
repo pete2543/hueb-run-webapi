@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>ผู้ใช้และสิทธิ์</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@500;600;700&family=Noto+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B1220}
+a{text-decoration:none;color:inherit}
+</style>
+</helmet>
+<div style="min-height: 900px; background: #0B1220; color: #F3F6FB; font-family: 'Noto Sans Thai', system-ui, sans-serif; line-height: 1.5">
+<div style="display: flex; flex-wrap: wrap; align-items: stretch; min-height: 900px">
+
+<div style="flex: 0 0 240px; box-sizing: border-box; background: #141D31; border-right: 1px solid #2A3857; padding: 24px 16px; display: flex; flex-direction: column; gap: 6px">
+<div style="font-family: 'Prompt', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: 0.08em; padding: 0 12px 18px">FUN<span style="color: #C6F432">RUN</span> <span style="font-weight: 500; font-size: 13px; color: #A3B0C8; letter-spacing: 0">Admin</span></div>
+<a href="Dashboard.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">แดชบอร์ด</a>
+<a href="Orders.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">ใบสมัคร</a>
+<a href="Admin.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; color: #A3B0C8"><div>ตรวจสลิป</div><div style="min-width: 24px; height: 24px; border-radius: 12px; background: #FFC857; color: #0B1220; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center">7</div></a>
+<a href="AdminRunners.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">นักวิ่ง &amp; เลขบิบ</a>
+<a href="Quota.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">ระยะ &amp; โควตา</a>
+<a href="Promo.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">โปรโมชัน</a>
+<a href="Checkin.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">เช็กอิน / รับของ</a>
+<a href="Broadcast.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">ประกาศ (LINE)</a>
+<a href="Refunds.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">คืนเงิน</a>
+<a href="Users.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; background: #C6F432; color: #0B1220; font-weight: 600">ผู้ใช้ &amp; สิทธิ์</a>
+<a href="Audit.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">Audit log</a>
+</div>
+
+<div style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px 32px 40px; display: flex; flex-direction: column; gap: 24px">
+
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+<div>
+<h1 style="margin: 0; font-family: 'Prompt', sans-serif; font-size: 28px; font-weight: 600">ผู้ใช้ &amp; สิทธิ์</h1>
+<div style="font-size: 14px; color: #A3B0C8">ข้อมูลตัวอย่าง</div>
+</div>
+<div style="min-height: 44px; padding: 0 18px; box-sizing: border-box; border-radius: 12px; background: #C6F432; color: #0B1220; font-weight: 600; display: flex; align-items: center">+ เชิญผู้ใช้</div>
+</div>
+
+<div style="background: #141D31; border: 1px solid #2A3857; border-radius: 18px; overflow: hidden">
+<div style="overflow-x: auto">
+<table style="width: 100%; border-collapse: collapse; font-size: 14px; min-width: 720px">
+<thead>
+<tr style="text-align: left; color: #A3B0C8">
+<th style="padding: 14px 16px; font-weight: 500">ชื่อ</th>
+<th style="padding: 14px 16px; font-weight: 500">อีเมล</th>
+<th style="padding: 14px 16px; font-weight: 500">บทบาท</th>
+<th style="padding: 14px 16px; font-weight: 500">เข้าถึงงาน</th>
+<th style="padding: 14px 16px; font-weight: 500">สถานะ</th>
+<th style="padding: 14px 16px; font-weight: 500">เข้าล่าสุด</th>
+</tr>
+</thead>
+<tbody>
+<tr style="border-top: 1px solid #2A3857">
+<td style="padding: 14px 16px">ผู้ดูแลระบบ</td>
+<td style="padding: 14px 16px; color: #A3B0C8">admin@example.com</td>
+<td style="padding: 14px 16px"><span style="display: inline-block; padding: 2px 10px; border-radius: 999px; background: #C6F432; color: #0B1220; font-size: 13px; font-weight: 600">SuperAdmin</span></td>
+<td style="padding: 14px 16px">ทุกงาน</td>
+<td style="padding: 14px 16px; color: #C6F432">ใช้งาน</td>
+<td style="padding: 14px 16px; color: #A3B0C8">วันนี้ 21:50</td>
+</tr>
+<tr style="border-top: 1px solid #2A3857">
+<td style="padding: 14px 16px">ผู้จัดงาน</td>
+<td style="padding: 14px 16px; color: #A3B0C8">organizer@example.com</td>
+<td style="padding: 14px 16px"><span style="display: inline-block; padding: 2px 10px; border-radius: 999px; border: 1px solid #C6F432; color: #C6F432; font-size: 13px; font-weight: 600">Organizer</span></td>
+<td style="padding: 14px 16px">Fun Run 2027</td>
+<td style="padding: 14px 16px; color: #C6F432">ใช้งาน</td>
+<td style="padding: 14px 16px; color: #A3B0C8">เมื่อวาน</td>
+</tr>
+<tr style="border-top: 1px solid #2A3857">
+<td style="padding: 14px 16px">การเงิน</td>
+<td style="padding: 14px 16px; color: #A3B0C8">finance@example.com</td>
+<td style="padding: 14px 16px"><span style="display: inline-block; padding: 2px 10px; border-radius: 999px; background: #FFC857; color: #0B1220; font-size: 13px; font-weight: 600">Finance</span></td>
+<td style="padding: 14px 16px">Fun Run 2027</td>
+<td style="padding: 14px 16px; color: #C6F432">ใช้งาน</td>
+<td style="padding: 14px 16px; color: #A3B0C8">วันนี้ 20:10</td>
+</tr>
+<tr style="border-top: 1px solid #2A3857">
+<td style="padding: 14px 16px">สตาฟโต๊ะ 1</td>
+<td style="padding: 14px 16px; color: #A3B0C8">staff1@example.com</td>
+<td style="padding: 14px 16px"><span style="display: inline-block; padding: 2px 10px; border-radius: 999px; border: 1px solid #A3B0C8; color: #A3B0C8; font-size: 13px; font-weight: 600">Staff</span></td>
+<td style="padding: 14px 16px">Fun Run 2027</td>
+<td style="padding: 14px 16px; color: #A3B0C8">ปิดใช้งาน</td>
+<td style="padding: 14px 16px; color: #A3B0C8">—</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div style="background: #141D31; border: 1px solid #2A3857; border-radius: 18px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<div style="font-family: 'Prompt', sans-serif; font-weight: 600">สิทธิ์ตามบทบาท</div>
+<div style="overflow-x: auto">
+<table style="width: 100%; border-collapse: collapse; font-size: 14px; min-width: 620px">
+<thead>
+<tr style="text-align: left; color: #A3B0C8">
+<th style="padding: 10px 12px; font-weight: 500">ความสามารถ</th>
+<th style="padding: 10px 12px; font-weight: 500; text-align: center">SuperAdmin</th>
+<th style="padding: 10px 12px; font-weight: 500; text-align: center">Organizer</th>
+<th style="padding: 10px 12px; font-weight: 500; text-align: center">Finance</th>
+<th style="padding: 10px 12px; font-weight: 500; text-align: center">Staff</th>
+</tr>
+</thead>
+<tbody>
+<tr style="border-top: 1px solid #2A3857"><td style="padding: 10px 12px">ตั้งค่างาน / ระยะ / โควตา</td><td style="padding: 10px 12px; text-align: center; color: #C6F432">✓</td><td style="padding: 10px 12px; text-align: center; color: #C6F432">✓</td><td style="padding: 10px 12px; text-align: center; color: #A3B0C8">—</td><td style="padding: 10px 12px; text-align: center; color: #A3B0C8">—</td></tr>
+<tr style="border-top: 1px solid #2A3857"><td style="padding: 10px 12px">ตรวจ/อนุมัติสลิป และคืนเงิน</td><td style="padding: 10px 12px; text-align: center; color: #C6F432">✓</td><td style="padding: 10px 12px; text-align: center; color: #A3B0C8">—</td><td style="padding: 10px 12px; text-align: center; color: #C6F432">✓</td><td style="padding: 10px 12px; text-align: center; color: #A3B0C8">—</td></tr>
+<tr style="border-top: 1px solid #2A3857"><td style="padding: 10px 12px">ส่งประกาศ LINE</td><td style="padding: 10px 12px; text-align: center; color: #C6F432">✓</td><td style="padding: 10px 12px; text-align: center; color: #C6F432">✓</td><td style="padding: 10px 12px; text-align: center; color: #A3B0C8">—</td><td style="padding: 10px 12px; text-align: center; color: #A3B0C8">—</td></tr>
+<tr style="border-top: 1px solid #2A3857"><td style="padding: 10px 12px">เช็กอิน / รับของ</td><td style="padding: 10px 12px; text-align: center; color: #C6F432">✓</td><td style="padding: 10px 12px; text-align: center; color: #C6F432">✓</td><td style="padding: 10px 12px; text-align: center; color: #A3B0C8">—</td><td style="padding: 10px 12px; text-align: center; color: #C6F432">✓</td></tr>
+<tr style="border-top: 1px solid #2A3857"><td style="padding: 10px 12px">จัดการผู้ใช้ / ดู Audit log</td><td style="padding: 10px 12px; text-align: center; color: #C6F432">✓</td><td style="padding: 10px 12px; text-align: center; color: #A3B0C8">—</td><td style="padding: 10px 12px; text-align: center; color: #A3B0C8">—</td><td style="padding: 10px 12px; text-align: center; color: #A3B0C8">—</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

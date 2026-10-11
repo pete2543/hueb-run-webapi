@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>ข้อมูลนักวิ่ง</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@500;600;700&family=Noto+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B1220}
+a{text-decoration:none;color:inherit}
+</style>
+</helmet>
+<div style="min-height: 1500px; background: #0B1220; color: #F3F6FB; font-family: 'Noto Sans Thai', system-ui, sans-serif; line-height: 1.5">
+<div style="max-width: 520px; margin: 0 auto; padding: 20px 20px 40px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px">
+
+<div style="display: flex; align-items: center; gap: 12px">
+<a href="Distances.dc.html" aria-label="กลับ" style="width: 44px; height: 44px; border-radius: 50%; background: #141D31; border: 1px solid #2A3857; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F3F6FB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+</a>
+<div style="flex-grow: 1">
+<div style="font-size: 13px; color: #A3B0C8">ขั้นตอนที่ 2 จาก 4</div>
+<div style="font-family: 'Prompt', sans-serif; font-weight: 600; font-size: 20px">ข้อมูลนักวิ่ง</div>
+</div>
+</div>
+
+<div style="display: flex; gap: 6px">
+<div style="flex: 1; height: 4px; border-radius: 2px; background: #C6F432"></div>
+<div style="flex: 1; height: 4px; border-radius: 2px; background: #C6F432"></div>
+<div style="flex: 1; height: 4px; border-radius: 2px; background: #2A3857"></div>
+<div style="flex: 1; height: 4px; border-radius: 2px; background: #2A3857"></div>
+</div>
+
+<div style="display: flex; gap: 8px">
+<div style="min-height: 44px; padding: 0 16px; box-sizing: border-box; border-radius: 999px; background: #C6F432; color: #0B1220; font-weight: 600; font-size: 14px; display: flex; align-items: center">นักวิ่ง 1 · 5 กม.</div>
+<div style="min-height: 44px; padding: 0 16px; box-sizing: border-box; border-radius: 999px; border: 1px dashed #2A3857; color: #A3B0C8; font-size: 14px; display: flex; align-items: center">+ เพิ่มคน</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 14px">
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #A3B0C8">คำนำหน้า
+<select style="font: inherit; font-size: 16px; color: #F3F6FB; background: #141D31; border: 1px solid #2A3857; border-radius: 12px; padding: 0 14px; height: 48px; box-sizing: border-box; width: 100%">
+<option>นาย</option>
+<option>นาง</option>
+<option>นางสาว</option>
+</select>
+</label>
+<div style="display: flex; gap: 10px">
+<label style="flex: 1; display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #A3B0C8">ชื่อ
+<input type="text" value="สมชาย" style="font: inherit; font-size: 16px; color: #F3F6FB; background: #141D31; border: 1px solid #2A3857; border-radius: 12px; padding: 0 14px; height: 48px; box-sizing: border-box; width: 100%">
+</label>
+<label style="flex: 1; display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #A3B0C8">นามสกุล
+<input type="text" value="ใจดี" style="font: inherit; font-size: 16px; color: #F3F6FB; background: #141D31; border: 1px solid #2A3857; border-radius: 12px; padding: 0 14px; height: 48px; box-sizing: border-box; width: 100%">
+</label>
+</div>
+<div style="display: flex; gap: 10px">
+<label style="flex: 1; display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #A3B0C8">วันเกิด
+<input type="text" placeholder="วว/ดด/ปปปป" style="font: inherit; font-size: 16px; color: #F3F6FB; background: #141D31; border: 1px solid #2A3857; border-radius: 12px; padding: 0 14px; height: 48px; box-sizing: border-box; width: 100%">
+</label>
+<label style="flex: 1; display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #A3B0C8">สัญชาติ
+<select style="font: inherit; font-size: 16px; color: #F3F6FB; background: #141D31; border: 1px solid #2A3857; border-radius: 12px; padding: 0 14px; height: 48px; box-sizing: border-box; width: 100%">
+<option>ไทย</option>
+<option>ลาว</option>
+<option>อื่น ๆ</option>
+</select>
+</label>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 14px; color: #A3B0C8">เพศ</div>
+<div style="display: flex; gap: 8px">
+<button type="button" style="flex: 1; min-height: 44px; border-radius: 12px; border: 2px solid #C6F432; background: #141D31; color: #F3F6FB; font: inherit; font-weight: 600">ชาย</button>
+<button type="button" style="flex: 1; min-height: 44px; border-radius: 12px; border: 1px solid #2A3857; background: #141D31; color: #F3F6FB; font: inherit">หญิง</button>
+<button type="button" style="flex: 1; min-height: 44px; border-radius: 12px; border: 1px solid #2A3857; background: #141D31; color: #F3F6FB; font: inherit">อื่น ๆ</button>
+</div>
+</div>
+
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #A3B0C8">เบอร์โทร
+<input type="tel" placeholder="08x-xxx-xxxx" style="font: inherit; font-size: 16px; color: #F3F6FB; background: #141D31; border: 1px solid #2A3857; border-radius: 12px; padding: 0 14px; height: 48px; box-sizing: border-box; width: 100%">
+</label>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 14px; color: #A3B0C8">ไซซ์เสื้อ</div>
+<div style="display: flex; gap: 8px">
+<button type="button" style="flex: 1; min-height: 44px; border-radius: 12px; border: 1px solid #2A3857; background: #141D31; color: #F3F6FB; font: inherit">S</button>
+<button type="button" style="flex: 1; min-height: 44px; border-radius: 12px; border: 2px solid #C6F432; background: #141D31; color: #F3F6FB; font: inherit; font-weight: 600">M</button>
+<button type="button" style="flex: 1; min-height: 44px; border-radius: 12px; border: 1px solid #2A3857; background: #141D31; color: #F3F6FB; font: inherit">L</button>
+<button type="button" style="flex: 1; min-height: 44px; border-radius: 12px; border: 1px solid #2A3857; background: #141D31; color: #F3F6FB; font: inherit">XL</button>
+</div>
+<div style="font-size: 12px; color: #A3B0C8">ไซซ์ M · รอบอก [ตารางไซซ์]</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 14px; background: #141D31; border: 1px solid #2A3857; border-radius: 18px; padding: 16px">
+<div style="font-family: 'Prompt', sans-serif; font-weight: 600">ผู้ติดต่อฉุกเฉิน</div>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #A3B0C8">ชื่อ-นามสกุล
+<input type="text" placeholder="ชื่อผู้ติดต่อ" style="font: inherit; font-size: 16px; color: #F3F6FB; background: #0B1220; border: 1px solid #2A3857; border-radius: 12px; padding: 0 14px; height: 48px; box-sizing: border-box; width: 100%">
+</label>
+<div style="display: flex; gap: 10px">
+<label style="flex: 1; display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #A3B0C8">ความสัมพันธ์
+<select style="font: inherit; font-size: 16px; color: #F3F6FB; background: #0B1220; border: 1px solid #2A3857; border-radius: 12px; padding: 0 14px; height: 48px; box-sizing: border-box; width: 100%">
+<option>คู่สมรส</option>
+<option>พ่อ</option>
+<option>แม่</option>
+<option>เพื่อน</option>
+</select>
+</label>
+<label style="flex: 1; display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #A3B0C8">เบอร์โทร
+<input type="tel" placeholder="08x-xxx-xxxx" style="font: inherit; font-size: 16px; color: #F3F6FB; background: #0B1220; border: 1px solid #2A3857; border-radius: 12px; padding: 0 14px; height: 48px; box-sizing: border-box; width: 100%">
+</label>
+</div>
+<div style="display: flex; gap: 10px">
+<label style="flex: 1; display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #A3B0C8">กรุ๊ปเลือด
+<select style="font: inherit; font-size: 16px; color: #F3F6FB; background: #0B1220; border: 1px solid #2A3857; border-radius: 12px; padding: 0 14px; height: 48px; box-sizing: border-box; width: 100%">
+<option>ไม่ทราบ</option>
+<option>A</option>
+<option>B</option>
+<option>AB</option>
+<option>O</option>
+</select>
+</label>
+<label style="flex: 1; display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #A3B0C8">โรคประจำตัว/แพ้ยา
+<input type="text" placeholder="ถ้ามี" style="font: inherit; font-size: 16px; color: #F3F6FB; background: #0B1220; border: 1px solid #2A3857; border-radius: 12px; padding: 0 14px; height: 48px; box-sizing: border-box; width: 100%">
+</label>
+</div>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px; border: 1px dashed #2A3857; border-radius: 18px; padding: 16px">
+<div style="font-family: 'Prompt', sans-serif; font-weight: 600">สมัครให้เพื่อนด้วยไหม?</div>
+<div style="font-size: 14px; color: #A3B0C8">เพิ่มนักวิ่งหลายคนในใบสมัครเดียว จ่ายเงินครั้งเดียว</div>
+<button type="button" style="min-height: 48px; border-radius: 12px; border: 1px solid #C6F432; background: transparent; color: #C6F432; font: inherit; font-weight: 600">+ เพิ่มนักวิ่งอีกคน</button>
+</div>
+
+<label style="display: flex; align-items: flex-start; gap: 12px; font-size: 14px; color: #A3B0C8">
+<input type="checkbox" style="width: 22px; height: 22px; margin: 0; flex-shrink: 0; accent-color: #C6F432">
+<span>ยอมรับเงื่อนไขการสมัครและนโยบายข้อมูลส่วนบุคคล (PDPA)</span>
+</label>
+
+<a href="Summary.dc.html" style="width: 100%; box-sizing: border-box; min-height: 56px; border-radius: 16px; background: #C6F432; color: #0B1220; font-family: 'Prompt', sans-serif; font-size: 18px; font-weight: 600; display: flex; align-items: center; justify-content: center">ถัดไป · สรุปรายการ</a>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1500}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

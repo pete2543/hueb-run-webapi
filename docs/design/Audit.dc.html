@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>Audit log</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@500;600;700&family=Noto+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B1220}
+a{text-decoration:none;color:inherit}
+</style>
+</helmet>
+<div style="min-height: 900px; background: #0B1220; color: #F3F6FB; font-family: 'Noto Sans Thai', system-ui, sans-serif; line-height: 1.5">
+<div style="display: flex; flex-wrap: wrap; align-items: stretch; min-height: 900px">
+
+<div style="flex: 0 0 240px; box-sizing: border-box; background: #141D31; border-right: 1px solid #2A3857; padding: 24px 16px; display: flex; flex-direction: column; gap: 6px">
+<div style="font-family: 'Prompt', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: 0.08em; padding: 0 12px 18px">FUN<span style="color: #C6F432">RUN</span> <span style="font-weight: 500; font-size: 13px; color: #A3B0C8; letter-spacing: 0">Admin</span></div>
+<a href="Dashboard.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">แดชบอร์ด</a>
+<a href="Orders.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">ใบสมัคร</a>
+<a href="Admin.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; color: #A3B0C8"><div>ตรวจสลิป</div><div style="min-width: 24px; height: 24px; border-radius: 12px; background: #FFC857; color: #0B1220; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center">7</div></a>
+<a href="AdminRunners.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">นักวิ่ง &amp; เลขบิบ</a>
+<a href="Quota.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">ระยะ &amp; โควตา</a>
+<a href="Promo.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">โปรโมชัน</a>
+<a href="Checkin.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">เช็กอิน / รับของ</a>
+<a href="Broadcast.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">ประกาศ (LINE)</a>
+<a href="Refunds.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">คืนเงิน</a>
+<a href="Users.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; color: #A3B0C8">ผู้ใช้ &amp; สิทธิ์</a>
+<a href="Audit.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; background: #C6F432; color: #0B1220; font-weight: 600">Audit log</a>
+</div>
+
+<div style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px 32px 40px; display: flex; flex-direction: column; gap: 24px">
+
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+<div>
+<h1 style="margin: 0; font-family: 'Prompt', sans-serif; font-size: 28px; font-weight: 600">Audit log</h1>
+<div style="font-size: 14px; color: #A3B0C8">ใครทำอะไร เมื่อไหร่ · ข้อมูลตัวอย่าง</div>
+</div>
+<div style="display: flex; gap: 10px; flex-wrap: wrap">
+<select aria-label="ผู้ใช้" style="font: inherit; color: #F3F6FB; background: #141D31; border: 1px solid #2A3857; border-radius: 12px; padding: 0 14px; height: 44px">
+<option>ทุกคน</option>
+<option>ผู้ดูแลระบบ</option>
+<option>การเงิน</option>
+</select>
+<select aria-label="ประเภท" style="font: inherit; color: #F3F6FB; background: #141D31; border: 1px solid #2A3857; border-radius: 12px; padding: 0 14px; height: 44px">
+<option>ทุกการกระทำ</option>
+<option>payment</option>
+<option>order</option>
+<option>promo</option>
+<option>refund</option>
+</select>
+</div>
+</div>
+
+<div style="background: #141D31; border: 1px solid #2A3857; border-radius: 18px; overflow: hidden">
+<div style="overflow-x: auto">
+<table style="width: 100%; border-collapse: collapse; font-size: 14px; min-width: 820px">
+<thead>
+<tr style="text-align: left; color: #A3B0C8">
+<th style="padding: 14px 16px; font-weight: 500">เวลา</th>
+<th style="padding: 14px 16px; font-weight: 500">ผู้ใช้</th>
+<th style="padding: 14px 16px; font-weight: 500">การกระทำ</th>
+<th style="padding: 14px 16px; font-weight: 500">รายการ</th>
+<th style="padding: 14px 16px; font-weight: 500">การเปลี่ยนแปลง</th>
+<th style="padding: 14px 16px; font-weight: 500">IP</th>
+</tr>
+</thead>
+<tbody>
+<tr style="border-top: 1px solid #2A3857">
+<td style="padding: 14px 16px; color: #A3B0C8">8 ต.ค. 21:50</td>
+<td style="padding: 14px 16px">การเงิน</td>
+<td style="padding: 14px 16px; font-family: monospace; color: #C6F432">payment.approve</td>
+<td style="padding: 14px 16px">RUN27-000123</td>
+<td style="padding: 14px 16px; color: #A3B0C8">NeedsReview → Verified</td>
+<td style="padding: 14px 16px; color: #A3B0C8">203.0.113.10</td>
+</tr>
+<tr style="border-top: 1px solid #2A3857">
+<td style="padding: 14px 16px; color: #A3B0C8">8 ต.ค. 21:31</td>
+<td style="padding: 14px 16px">ผู้ดูแลระบบ</td>
+<td style="padding: 14px 16px; font-family: monospace; color: #C6F432">promo.update</td>
+<td style="padding: 14px 16px">EARLY10</td>
+<td style="padding: 14px 16px; color: #A3B0C8">MaxUses 150 → 200</td>
+<td style="padding: 14px 16px; color: #A3B0C8">203.0.113.4</td>
+</tr>
+<tr style="border-top: 1px solid #2A3857">
+<td style="padding: 14px 16px; color: #A3B0C8">8 ต.ค. 20:12</td>
+<td style="padding: 14px 16px">ผู้ดูแลระบบ</td>
+<td style="padding: 14px 16px; font-family: monospace; color: #FFC857">distance.quota</td>
+<td style="padding: 14px 16px">Challenge 10 กม.</td>
+<td style="padding: 14px 16px; color: #A3B0C8">Quota 380 → 400</td>
+<td style="padding: 14px 16px; color: #A3B0C8">203.0.113.4</td>
+</tr>
+<tr style="border-top: 1px solid #2A3857">
+<td style="padding: 14px 16px; color: #A3B0C8">8 ต.ค. 18:44</td>
+<td style="padding: 14px 16px">การเงิน</td>
+<td style="padding: 14px 16px; font-family: monospace; color: #FF7A59">payment.reject</td>
+<td style="padding: 14px 16px">RUN27-000126</td>
+<td style="padding: 14px 16px; color: #A3B0C8">เหตุผล: สลิปซ้ำ</td>
+<td style="padding: 14px 16px; color: #A3B0C8">203.0.113.10</td>
+</tr>
+<tr style="border-top: 1px solid #2A3857">
+<td style="padding: 14px 16px; color: #A3B0C8">7 ต.ค. 16:20</td>
+<td style="padding: 14px 16px">ผู้จัดงาน</td>
+<td style="padding: 14px 16px; font-family: monospace; color: #FFC857">broadcast.send</td>
+<td style="padding: 14px 16px">เตือนวันรับบิบ</td>
+<td style="padding: 14px 16px; color: #A3B0C8">ผู้รับ 436 · สำเร็จ 431</td>
+<td style="padding: 14px 16px; color: #A3B0C8">198.51.100.7</td>
+</tr>
+<tr style="border-top: 1px solid #2A3857">
+<td style="padding: 14px 16px; color: #A3B0C8">7 ต.ค. 09:05</td>
+<td style="padding: 14px 16px">ผู้ดูแลระบบ</td>
+<td style="padding: 14px 16px; font-family: monospace; color: #FFC857">user.deactivate</td>
+<td style="padding: 14px 16px">สตาฟโต๊ะ 1</td>
+<td style="padding: 14px 16px; color: #A3B0C8">IsActive true → false</td>
+<td style="padding: 14px 16px; color: #A3B0C8">203.0.113.4</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div style="font-size: 13px; color: #A3B0C8">เก็บค่าเก่า/ค่าใหม่ (jsonb) ทุกครั้งที่มีการแก้ไขข้อมูลสำคัญ ลบไม่ได้จากหน้าจอ</div>
+
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
