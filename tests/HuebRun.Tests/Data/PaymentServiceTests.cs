@@ -77,6 +77,18 @@ public sealed class PaymentServiceTests(PostgresFixture pg) : OrderTestBase(pg)
     }
 
     [Fact]
+    public async Task Early_rejected_slip_keeps_the_original_deadline()
+    {
+        var created = await CreateOrderOk();
+        _verifier.Enqueue(new SlipCheckResult.Rejected(PaymentRejectReason.InvalidSlip, "{}"));
+
+        await SubmitFails(created.OrderId, Slips.Image(1), At(1));
+
+        // grace 00:01 + 10 = 00:11 สั้นกว่ากำหนดเดิม 00:30 → ต้องคงเวลาเดิม
+        Assert.Equal(created.ExpiresAt, (await Load(created.OrderId)).Order.ExpiresAt);
+    }
+
+    [Fact]
     public async Task Verified_amount_that_differs_is_rejected()
     {
         var created = await CreateOrderOk();

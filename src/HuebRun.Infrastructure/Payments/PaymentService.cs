@@ -123,10 +123,13 @@ public sealed class PaymentService(
         if (payment.Status == PaymentStatus.Verifying && (payment.CheckAttempts >= MaxAttempts || now - payment.CreatedAt > MaxVerifyAge))
             Review(payment, PaymentRejectReason.VerifyTimeout);
 
-        // ไม่ผ่าน: ปลด hold เหลือเวลาให้อัปโหลดใหม่
+        // ไม่ผ่าน: ปลด hold เหลือเวลาให้อัปโหลดใหม่ แต่ไม่สั้นกว่ากำหนดเดิมของออเดอร์
         if (payment.Status == PaymentStatus.Rejected && order.Status == OrderStatus.Pending)
         {
+            var reservation = await db.Events.Where(e => e.Id == order.EventId).Select(e => e.ReservationMinutes).SingleAsync(ct);
+            var original = order.CreatedAt.AddMinutes(reservation);
             var grace = now.AddMinutes(options.Value.RejectGraceMinutes);
+            if (grace < original) grace = original;
             await db.Orders.Where(o => o.Id == order.Id && o.Status == OrderStatus.Pending)
                 .ExecuteUpdateAsync(s => s.SetProperty(o => o.ExpiresAt, grace), ct);
         }
