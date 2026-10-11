@@ -20,9 +20,7 @@ public static class DatabaseStartup
                 logger.LogWarning("Database has pending migrations; run `dotnet ef database update`. Seed skipped.");
                 return;
             }
-            await SeedData.RunAsync(db, SeedData.GeoDir);
-            if (app.Environment.IsDevelopment())
-                await DevSeedData.RunAsync(db);
+            await DatabaseSeeder.RunAsync(db, includeDevData: app.Environment.IsDevelopment());
         }
         catch (NpgsqlException ex)
         {

@@ -87,3 +87,28 @@ public class GeoSeedFilteringTests(PostgresFixture pg) : IDisposable
         Assert.Equal("01100", sub.ZipCode);
     }
 }
+
+[Collection("db")]
+public class ConcurrentSeedTests(PostgresFixture pg)
+{
+    [Fact]
+    public async Task Concurrent_seeding_on_empty_database_does_not_duplicate_or_fail()
+    {
+        await using var fresh = await pg.CreateFreshDatabaseAsync();
+        var conn = fresh.Database.GetConnectionString()!;
+        AppDbContext NewContext() => new(new DbContextOptionsBuilder<AppDbContext>().UseNpgsql(conn).Options);
+
+        var runs = Enumerable.Range(0, 4).Select(async _ =>
+        {
+            await using var db = NewContext();
+            await DatabaseSeeder.RunAsync(db, includeDevData: true);
+        });
+        await Task.WhenAll(runs);
+
+        await using var check = NewContext();
+        Assert.Equal(5, await check.Titles.CountAsync());
+        Assert.Equal(6, await check.EmergencyRelations.CountAsync());
+        Assert.Equal(77, await check.Provinces.CountAsync());
+        Assert.Equal(1, await check.Events.CountAsync(e => e.Slug == DevSeedData.Slug));
+    }
+}
