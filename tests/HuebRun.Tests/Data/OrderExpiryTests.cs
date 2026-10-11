@@ -93,4 +93,36 @@ public sealed class OrderExpiryTests(PostgresFixture pg) : OrderTestBase(pg)
         Assert.Equal(paidCount, (await db.EventDistances.SingleAsync(d => d.Id == FiveK.Id)).ReservedCount);
         Assert.Equal(paidCount, (await db.EventShirtSizes.SingleAsync(s => s.Id == M.Id)).ReservedCount);
     }
+
+    [Fact]
+    public async Task Backlog_larger_than_one_batch_is_cleared_in_a_single_run()
+    {
+        var orders = new List<CreatedOrder>();
+        for (var i = 0; i < 5; i++) orders.Add(await CreateOrderOk());
+
+        await using (var db = Pg.CreateDbContext())
+            await new OrderExpiryService(db, AfterExpiry).ExpireDueOrdersAsync(batchSize: 2);
+
+        foreach (var o in orders) Assert.Equal(OrderStatus.Expired, (await Snapshot(o.OrderId)).Status);
+        Assert.Equal(0, (await Snapshot(orders[0].OrderId)).FiveK);
+    }
+
+    [Fact]
+    public async Task One_failing_order_does_not_block_the_others()
+    {
+        var broken = await CreateOrderOk(Request(Runner(TenK)));
+        var healthy = await CreateOrderOk(Request(Runner(FiveK)));
+        // จำลองข้อมูลเพี้ยน: คืนที่ของ broken แล้วจะติดลบ → ชน check constraint
+        await using (var db = Pg.CreateDbContext())
+            await db.EventDistances.Where(d => d.Id == TenK.Id).ExecuteUpdateAsync(s => s.SetProperty(d => d.ReservedCount, 0));
+
+        await RunExpiry(AfterExpiry);
+
+        Assert.Equal(OrderStatus.Pending, (await Snapshot(broken.OrderId)).Status);   // rollback ทั้งออเดอร์
+        Assert.Equal((OrderStatus.Expired, 0), ((await Snapshot(healthy.OrderId)).Status, (await Snapshot(healthy.OrderId)).FiveK));
+
+        // ซ่อมข้อมูลให้ test อื่นที่รัน expiry ภายหลังไม่ต้องเจอออเดอร์นี้
+        await using (var db = Pg.CreateDbContext())
+            await db.Orders.Where(o => o.Id == broken.OrderId).ExecuteUpdateAsync(s => s.SetProperty(o => o.Status, OrderStatus.Cancelled));
+    }
 }

@@ -1,27 +1,43 @@
 using HuebRun.Domain;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace HuebRun.Infrastructure.Orders;
 
 /// เปลี่ยนออเดอร์ Pending ที่เลยเวลาเป็น Expired และคืนโควตา/เสื้อ/โค้ด
-public sealed class OrderExpiryService(AppDbContext db, TimeProvider time)
+public sealed class OrderExpiryService(AppDbContext db, TimeProvider time, ILogger<OrderExpiryService>? logger = null)
 {
     public const int BatchSize = 200;
 
-    public async Task<int> ExpireDueOrdersAsync(CancellationToken ct = default)
+    /// วนทีละ batch จนไม่เหลือออเดอร์ที่ถึงเวลา; ออเดอร์ที่ error ถูกข้าม (log ไว้) ไม่ให้ขวางออเดอร์อื่น
+    public async Task<int> ExpireDueOrdersAsync(CancellationToken ct = default, int batchSize = BatchSize)
     {
         var now = time.GetUtcNow().UtcDateTime;
-        var due = await db.Orders.AsNoTracking()
-            .Where(o => o.Status == OrderStatus.Pending && o.ExpiresAt <= now)
-            .OrderBy(o => o.ExpiresAt)
-            .Select(o => o.Id)
-            .Take(BatchSize)
-            .ToListAsync(ct);
-
+        var failed = new List<Guid>();
         var expired = 0;
-        foreach (var orderId in due)
-            if (await ExpireAsync(orderId, ct)) expired++;
-        return expired;
+        while (true)
+        {
+            var due = await db.Orders.AsNoTracking()
+                .Where(o => o.Status == OrderStatus.Pending && o.ExpiresAt <= now && !failed.Contains(o.Id))
+                .OrderBy(o => o.ExpiresAt)
+                .Select(o => o.Id)
+                .Take(batchSize)
+                .ToListAsync(ct);
+
+            foreach (var orderId in due)
+            {
+                try
+                {
+                    if (await ExpireAsync(orderId, ct)) expired++;
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    failed.Add(orderId);
+                    logger?.LogError(ex, "Failed to expire order {OrderId}; skipped", orderId);
+                }
+            }
+            if (due.Count < batchSize) return expired;
+        }
     }
 
     private async Task<bool> ExpireAsync(Guid orderId, CancellationToken ct)
