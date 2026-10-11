@@ -85,4 +85,47 @@ public sealed class GeoEndpointTests(PostgresFixture pg) : IDisposable
         var body = await Body(await Client.GetAsync($"/api/v1/geo/zip/{Uri.EscapeDataString(zip)}"), HttpStatusCode.BadRequest);
         Assert.Equal("VALIDATION_ERROR", body.GetProperty("code").GetString());
     }
+
+    [Fact]
+    public async Task Search_returns_full_address_with_label()
+    {
+        var body = await Body(await Client.GetAsync($"/api/v1/geo/search?q={Uri.EscapeDataString("พระบรมมหาราชวัง")}"));
+        var hit = body.EnumerateArray().First();
+        Assert.Equal("พระบรมมหาราชวัง", hit.GetProperty("subdistrict").GetProperty("nameTh").GetString());
+        Assert.Equal("เขตพระนคร", hit.GetProperty("district").GetProperty("nameTh").GetString());
+        Assert.Equal("กรุงเทพมหานคร", hit.GetProperty("province").GetProperty("nameTh").GetString());
+        Assert.Equal("10200", hit.GetProperty("zipCode").GetString());
+        Assert.Equal("พระบรมมหาราชวัง » เขตพระนคร » กรุงเทพมหานคร 10200", hit.GetProperty("label").GetString());
+    }
+
+    [Fact]
+    public async Task Search_by_district_and_zip_together()
+    {
+        var body = await Body(await Client.GetAsync($"/api/v1/geo/search?q={Uri.EscapeDataString("หาดใหญ่ 90110")}"));
+        Assert.NotEmpty(body.EnumerateArray());
+        Assert.All(body.EnumerateArray(), h => Assert.Equal("90110", h.GetProperty("zipCode").GetString()));
+    }
+
+    [Fact]
+    public async Task Search_uses_default_limit_of_20()
+    {
+        var body = await Body(await Client.GetAsync("/api/v1/geo/search?q=10"));
+        Assert.Equal(20, body.GetArrayLength());
+    }
+
+    [Fact]
+    public async Task Search_without_query_returns_empty_list()
+    {
+        var body = await Body(await Client.GetAsync("/api/v1/geo/search"));
+        Assert.Equal(0, body.GetArrayLength());
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(51)]
+    public async Task Search_limit_out_of_range_is_validation_error(int limit)
+    {
+        var body = await Body(await Client.GetAsync($"/api/v1/geo/search?q=10&limit={limit}"), HttpStatusCode.BadRequest);
+        Assert.Equal("VALIDATION_ERROR", body.GetProperty("code").GetString());
+    }
 }

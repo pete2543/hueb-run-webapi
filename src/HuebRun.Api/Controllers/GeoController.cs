@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using HuebRun.Api.Contracts;
 using HuebRun.Api.Errors;
+using HuebRun.Api.Geo;
 using HuebRun.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,8 +10,11 @@ namespace HuebRun.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/geo")]
-public sealed partial class GeoController(AppDbContext db) : ControllerBase
+public sealed partial class GeoController(AppDbContext db, GeoSearchIndex searchIndex) : ControllerBase
 {
+    public const int DefaultSearchLimit = 20;
+    public const int MaxSearchLimit = 50;
+
     [HttpGet("provinces")]
     public async Task<IReadOnlyList<GeoItem>> GetProvinces(CancellationToken ct) =>
         await db.Provinces.AsNoTracking()
@@ -57,6 +61,23 @@ public sealed partial class GeoController(AppDbContext db) : ControllerBase
                 new GeoRef(s.District.Province.Id, s.District.Province.NameTh),
                 s.ZipCode))
             .ToListAsync(ct);
+    }
+
+    // ช่องค้นหาเดียว: ชื่อตำบล/อำเภอ/จังหวัด หรือรหัสไปรษณีย์ (บางส่วน) คืนที่อยู่ครบชุดให้เติมฟอร์มได้ทันที
+    [HttpGet("search")]
+    public async Task<IReadOnlyList<GeoSearchResult>> Search(string? q, CancellationToken ct, int limit = DefaultSearchLimit)
+    {
+        if (limit is < 1 or > MaxSearchLimit)
+            throw new AppException(StatusCodes.Status400BadRequest, "VALIDATION_ERROR",
+                $"limit ต้องอยู่ระหว่าง 1 ถึง {MaxSearchLimit}", new { limit });
+        var entries = await searchIndex.GetEntriesAsync(ct);
+        return GeoSearch.Search(entries, q, limit)
+            .Select(e => new GeoSearchResult(
+                new GeoRef(e.SubdistrictId, e.SubdistrictTh),
+                new GeoRef(e.DistrictId, e.DistrictTh),
+                new GeoRef(e.ProvinceId, e.ProvinceTh),
+                e.ZipCode, e.Label))
+            .ToList();
     }
 
     // ใช้ [0-9] ไม่ใช้ \d เพราะ \d ยอมรับเลขไทย

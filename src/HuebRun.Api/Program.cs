@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using HuebRun.Api;
 using HuebRun.Api.Errors;
+using HuebRun.Api.Geo;
 using HuebRun.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton<GeoSearchIndex>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
