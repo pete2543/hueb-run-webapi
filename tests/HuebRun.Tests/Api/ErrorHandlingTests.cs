@@ -1,5 +1,7 @@
 using System.Text.Json;
 using HuebRun.Api.Errors;
+using HuebRun.Domain;
+using HuebRun.Infrastructure.Orders;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -37,5 +39,31 @@ public class ErrorHandlingTests
         Assert.Equal("INTERNAL_ERROR", body.GetProperty("code").GetString());
         Assert.Equal(JsonValueKind.Null, body.GetProperty("details").ValueKind);
         Assert.DoesNotContain("hunter2", raw);
+    }
+
+    [Fact]
+    public async Task Order_rule_exception_maps_to_its_status_and_code()
+    {
+        var (status, body, _) = await Handle(OrderErrors.QuotaFull(7, "5K"));
+        Assert.Equal(409, status);
+        Assert.Equal("QUOTA_FULL", body.GetProperty("code").GetString());
+        Assert.Equal(7, body.GetProperty("details").GetProperty("distanceId").GetInt32());
+    }
+
+    [Fact]
+    public async Task Promo_rejection_reason_is_screaming_snake_case()
+    {
+        var (status, body, _) = await Handle(OrderErrors.Promo(PromoRejection.MinOrderNotMet));
+        Assert.Equal(422, status);
+        Assert.Equal("PROMO_INVALID", body.GetProperty("code").GetString());
+        Assert.Equal("MIN_ORDER_NOT_MET", body.GetProperty("details").GetProperty("reason").GetString());
+    }
+
+    [Fact]
+    public async Task Exhausted_promo_is_conflict()
+    {
+        var (status, body, _) = await Handle(OrderErrors.Promo(PromoRejection.Exhausted));
+        Assert.Equal(409, status);
+        Assert.Equal("PROMO_EXHAUSTED", body.GetProperty("code").GetString());
     }
 }

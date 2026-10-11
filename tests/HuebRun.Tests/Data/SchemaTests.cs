@@ -41,4 +41,23 @@ public class SchemaTests(PostgresFixture pg)
         dbb.ReservedCount++;
         await Assert.ThrowsAsync<DbUpdateConcurrencyException>(() => b.SaveChangesAsync());
     }
+
+    [Fact]
+    public async Task Order_number_sequence_exists_and_increments()
+    {
+        await using var db = pg.CreateDbContext();
+        var a = await db.Database.SqlQuery<long>($"SELECT nextval('order_no_seq') AS \"Value\"").SingleAsync();
+        var b = await db.Database.SqlQuery<long>($"SELECT nextval('order_no_seq') AS \"Value\"").SingleAsync();
+        Assert.Equal(a + 1, b);
+    }
+
+    [Fact]
+    public async Task Distance_bib_counter_defaults_to_zero()
+    {
+        await using var db = pg.CreateDbContext();
+        var ev = await TestData.CreateEventAsync(db, e =>
+            e.Distances.Add(new EventDistance { Name = "3K", DistanceKm = 3, BibPrefix = "A", Quota = 10, Price = 100 }));
+        await using var check = pg.CreateDbContext();
+        Assert.Equal(0, (await check.EventDistances.SingleAsync(d => d.Id == ev.Distances[0].Id)).LastBibNumber);
+    }
 }

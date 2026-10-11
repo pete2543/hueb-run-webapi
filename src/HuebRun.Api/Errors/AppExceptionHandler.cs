@@ -1,3 +1,4 @@
+using HuebRun.Infrastructure.Orders;
 using Microsoft.AspNetCore.Diagnostics;
 
 namespace HuebRun.Api.Errors;
@@ -8,16 +9,21 @@ public sealed class AppExceptionHandler(ILogger<AppExceptionHandler> logger) : I
     {
         int status;
         ErrorResponse body;
-        if (exception is AppException app)
+        switch (exception)
         {
-            status = app.StatusCode;
-            body = new ErrorResponse(app.Code, app.Message, app.Details);
-        }
-        else
-        {
-            logger.LogError(exception, "Unhandled exception");
-            status = StatusCodes.Status500InternalServerError;
-            body = new ErrorResponse("INTERNAL_ERROR", "เกิดข้อผิดพลาดภายในระบบ", null);
+            case AppException app:
+                status = app.StatusCode;
+                body = new ErrorResponse(app.Code, app.Message, app.Details);
+                break;
+            case OrderRuleException rule:
+                status = rule.StatusCode;
+                body = new ErrorResponse(rule.Code, rule.Message, rule.Details);
+                break;
+            default:
+                logger.LogError(exception, "Unhandled exception");
+                status = StatusCodes.Status500InternalServerError;
+                body = new ErrorResponse("INTERNAL_ERROR", "เกิดข้อผิดพลาดภายในระบบ", null);
+                break;
         }
 
         context.Response.StatusCode = status;

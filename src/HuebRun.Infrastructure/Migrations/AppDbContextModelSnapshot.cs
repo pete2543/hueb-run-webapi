@@ -22,6 +22,8 @@ namespace HuebRun.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.HasSequence("order_no_seq");
+
             modelBuilder.Entity("HuebRun.Domain.AdminEventAccess", b =>
                 {
                     b.Property<Guid>("AdminUserId")
@@ -432,6 +434,9 @@ namespace HuebRun.Infrastructure.Migrations
                         .HasColumnType("numeric(12,2)");
 
                     b.Property<int>("EventId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("LastBibNumber")
                         .HasColumnType("integer");
 
                     b.Property<string>("Name")

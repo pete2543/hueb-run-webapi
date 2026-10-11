@@ -42,6 +42,9 @@ public class AppDbContext : IdentityDbContext<AdminUser, IdentityRole<Guid>, Gui
     {
         base.OnModelCreating(b);   // ตาราง Identity (AspNetUsers ฯลฯ)
 
+        // เลขออเดอร์อ่านง่าย (HR27-000123) ไม่ชนกันแม้สร้างพร้อมกัน
+        b.HasSequence<long>("order_no_seq");
+
         // เก็บ enum เป็น string อ่านง่ายใน DB
         b.Entity<Order>().Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
         b.Entity<Payment>().Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
