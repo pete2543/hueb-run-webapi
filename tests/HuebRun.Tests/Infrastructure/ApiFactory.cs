@@ -7,7 +7,7 @@ using Microsoft.Extensions.Time.Testing;
 
 namespace HuebRun.Tests.Infrastructure;
 
-public sealed class ApiFactory(string connectionString) : WebApplicationFactory<Program>
+public sealed class ApiFactory(string connectionString, bool jobsEnabled = false) : WebApplicationFactory<Program>
 {
     public FakeTimeProvider Time { get; } = new(new DateTimeOffset(2026, 11, 15, 0, 0, 0, TimeSpan.Zero));
 
@@ -15,6 +15,7 @@ public sealed class ApiFactory(string connectionString) : WebApplicationFactory<
     {
         builder.UseEnvironment("Testing");
         builder.UseSetting("ConnectionStrings:DefaultConnection", connectionString);
+        builder.UseSetting("Jobs:OrderExpiry:Enabled", jobsEnabled ? "true" : "false");
         builder.ConfigureTestServices(s =>
         {
             s.RemoveAll<TimeProvider>();

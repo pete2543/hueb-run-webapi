@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using HuebRun.Api;
 using HuebRun.Api.Errors;
 using HuebRun.Api.Geo;
+using HuebRun.Api.Jobs;
 using HuebRun.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,6 +11,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<GeoSearchIndex>();
+if (builder.Configuration.GetValue("Jobs:OrderExpiry:Enabled", true))
+    builder.Services.AddHostedService<OrderExpiryWorker>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));

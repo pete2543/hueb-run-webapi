@@ -1,4 +1,7 @@
 using System.Net;
+using HuebRun.Api.Jobs;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using HuebRun.Tests.Infrastructure;
 
 namespace HuebRun.Tests.Api;
@@ -33,6 +36,20 @@ public class HostTests(PostgresFixture pg)
         req.Headers.Add("Origin", "https://evil.example");
         var res = await factory.CreateClient().SendAsync(req);
         Assert.False(res.Headers.Contains("Access-Control-Allow-Origin"));
+    }
+
+    [Fact]
+    public void Order_expiry_worker_is_off_in_tests_by_default()
+    {
+        using var factory = new ApiFactory(pg.ConnectionString);
+        Assert.DoesNotContain(factory.Services.GetServices<IHostedService>(), s => s is OrderExpiryWorker);
+    }
+
+    [Fact]
+    public void Order_expiry_worker_runs_when_enabled()
+    {
+        using var factory = new ApiFactory(pg.ConnectionString, jobsEnabled: true);
+        Assert.Contains(factory.Services.GetServices<IHostedService>(), s => s is OrderExpiryWorker);
     }
 }
 

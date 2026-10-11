@@ -13,6 +13,7 @@ public static class DependencyInjection
             o.UseNpgsql(config.GetConnectionString("DefaultConnection") ?? ""));
         services.AddScoped<OrderService>();
         services.AddScoped<OrderPaymentService>();
+        services.AddScoped<OrderExpiryService>();
         return services;
     }
 }
