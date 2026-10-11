@@ -13,6 +13,8 @@ builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<GeoSearchIndex>();
 if (builder.Configuration.GetValue("Jobs:OrderExpiry:Enabled", true))
     builder.Services.AddHostedService<OrderExpiryWorker>();
+if (builder.Configuration.GetValue("Jobs:PaymentRecheck:Enabled", true))
+    builder.Services.AddHostedService<PaymentRecheckWorker>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));

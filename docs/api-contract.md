@@ -76,7 +76,23 @@
 สถานะที่ implement แล้ว (2026-10-11): validate/promo/create/GET order/tickets + job หมดเวลา ทุก 1 นาที
 error เพิ่มเติม: `409 PAYMENT_SLOT_BUSY` (เศษสตางค์ของยอดนี้เต็ม 99 ช่อง), `404 ORDER_NOT_FOUND`
 `GET /orders/{id}` ไม่ส่ง `medicalNote`, ผู้ติดต่อฉุกเฉิน, `checkInToken`; `status` แสดง `Expired` ทันทีเมื่อเลย `expiresAt`
-ยังไม่ทำ: `GET /orders/{id}/payment`, `POST /orders/{id}/payment/slip` (รอเลือกบริการตรวจสลิป)
+
+### GET `/orders/{orderId}/payment`
+
+`200 { orderId, orderNo, amount, accountName, qrPayload, expiresAt, payment: { paymentId, status, rejectReason, createdAt } | null }`
+error: `404 ORDER_NOT_FOUND`, `409 ORDER_ALREADY_PAID`, `409 ORDER_NOT_PAYABLE`
+
+### POST `/orders/{orderId}/payment/slip`
+
+multipart ฟิลด์ `file` (.jpg .jpeg .png .webp ไม่เกิน 5 MB)
+- `200 { paymentId, status: "Verified", orderStatus: "Paid" }`
+- `202 { paymentId, status: "Verifying", nextCheckAt }` — poll `GET /orders/{id}/payment`
+- `202 { paymentId, status: "NeedsReview", reason }` — รอเจ้าหน้าที่
+- `422 SLIP_REJECTED` details `{ paymentId, reason: INVALID_SLIP | AMOUNT_MISMATCH | WRONG_RECEIVER | DUPLICATE_SLIP }` — อัปโหลดใหม่ได้
+- `400 VALIDATION_ERROR` (`details.file`), `404 ORDER_NOT_FOUND`, `409 ORDER_ALREADY_PAID`, `409 ORDER_NOT_PAYABLE`, `409 PAYMENT_IN_PROGRESS`, `409 SLIP_DUPLICATE`
+
+`GET /orders/{id}` มีฟิลด์ `payment: { paymentId, status, rejectReason } | null` (ล่าสุด)
+ออเดอร์ยอด 0 บาท (โค้ดฟรี + รับเอง) เป็น `Paid` ทันทีตอนสร้าง `payableAmount = 0`
 
 ## Admin
 
