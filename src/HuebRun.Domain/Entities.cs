@@ -216,19 +216,41 @@ public class Payment
     public Guid OrderId { get; set; }
     public Order Order { get; set; } = null!;
 
-    public string Provider { get; set; } = "";         // "SlipVerify", "Omise", ...
+    public string Provider { get; set; } = "";         // PaymentProvider.*
     public PaymentStatus Status { get; set; } = PaymentStatus.Pending;
     public decimal ExpectedAmount { get; set; }
     public decimal? PaidAmount { get; set; }
 
-    public string? SlipImageUrl { get; set; }
-    public string? SlipHash { get; set; }              // กันสลิปซ้ำ
+    public string? SlipObjectKey { get; set; }         // key ใน object storage (ไม่เก็บ URL)
+    public string? SlipHash { get; set; }              // SHA-256 ของไฟล์ กันรูปซ้ำ
     public string? SlipTransRef { get; set; }          // เลขอ้างอิงธุรกรรมจากสลิป (unique)
+    public DateTime? TransferredAt { get; set; }       // เวลาโอนตามสลิป
     public string? ExternalRef { get; set; }           // charge id ของ gateway (อนาคต)
-    public string? ProviderResponse { get; set; }      // jsonb เก็บผลตรวจดิบ
+    public string? ProviderResponse { get; set; }      // jsonb เก็บผลตรวจดิบครั้งล่าสุด
 
-    public string? RejectReason { get; set; }
+    public DateTime? NextCheckAt { get; set; }         // Verifying: เวลาที่ job ควรตรวจซ้ำ
+    public int CheckAttempts { get; set; }
+
+    public string? RejectReason { get; set; }          // PaymentRejectReason.*
     public string? ReviewedBy { get; set; }            // แอดมินที่ตรวจมือ
     public DateTime CreatedAt { get; set; }
     public DateTime? VerifiedAt { get; set; }
+}
+
+public static class PaymentProvider
+{
+    public const string SlipOk = "SlipOK";
+    public const string Free = "Free";
+}
+
+/// เหตุผลที่ Payment ถูกปฏิเสธหรือต้องตรวจมือ (ใช้ค่าเดียวกันใน API)
+public static class PaymentRejectReason
+{
+    public const string InvalidSlip = "INVALID_SLIP";
+    public const string AmountMismatch = "AMOUNT_MISMATCH";
+    public const string WrongReceiver = "WRONG_RECEIVER";
+    public const string DuplicateSlip = "DUPLICATE_SLIP";
+    public const string OrderExpired = "ORDER_EXPIRED";
+    public const string DuplicateUnknown = "DUPLICATE_UNKNOWN";
+    public const string VerifyTimeout = "VERIFY_TIMEOUT";
 }

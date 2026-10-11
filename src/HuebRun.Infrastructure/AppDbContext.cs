@@ -178,6 +178,11 @@ public class AppDbContext : IdentityDbContext<AdminUser, IdentityRole<Guid>, Gui
         b.Entity<Payment>().HasIndex(x => x.SlipHash).IsUnique().HasFilter("\"SlipHash\" IS NOT NULL");
         b.Entity<Payment>().HasIndex(x => x.SlipTransRef).IsUnique().HasFilter("\"SlipTransRef\" IS NOT NULL");
         b.Entity<Payment>().HasIndex(x => new { x.OrderId, x.Status });
+        // ออเดอร์มีสลิปรอตรวจได้ทีละใบ
+        b.Entity<Payment>().HasIndex(x => x.OrderId, "IX_Payments_OrderId_Verifying")
+            .IsUnique().HasFilter("\"Status\" = 'Verifying'");
+        // ให้ job หา Payment ที่ถึงเวลาตรวจซ้ำเร็ว
+        b.Entity<Payment>().HasIndex(x => x.NextCheckAt).HasFilter("\"Status\" = 'Verifying'");
         b.Entity<Payment>().Property(x => x.ProviderResponse).HasColumnType("jsonb");
     }
 }
