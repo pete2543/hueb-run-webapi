@@ -12,6 +12,7 @@ public static class DependencyInjection
         services.AddDbContext<AppDbContext>(o =>
             o.UseNpgsql(config.GetConnectionString("DefaultConnection") ?? ""));
         services.AddScoped<OrderService>();
+        services.AddScoped<OrderPaymentService>();
         return services;
     }
 }
