@@ -1,7 +1,7 @@
 using HuebRun.Api.Contracts;
-using HuebRun.Api.Errors;
 using HuebRun.Domain;
 using HuebRun.Infrastructure;
+using HuebRun.Infrastructure.Orders;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,7 +14,7 @@ public sealed class EventsController(AppDbContext db, TimeProvider time) : Contr
     [HttpGet]
     public async Task<EventResponse> Get(string slug, CancellationToken ct)
     {
-        var e = await Published(slug).AsNoTracking().FirstOrDefaultAsync(ct) ?? throw EventNotFound(slug);
+        var e = await Published(slug).AsNoTracking().FirstOrDefaultAsync(ct) ?? throw OrderErrors.EventNotFound(slug);
         return new EventResponse(e.Id, e.Slug, e.Name, e.Year, e.EventDate,
             e.RegistrationOpensAt, e.RegistrationClosesAt, e.IsRegistrationOpen(Now));
     }
@@ -64,8 +64,5 @@ public sealed class EventsController(AppDbContext db, TimeProvider time) : Contr
     }
 
     private async Task<int> GetEventIdAsync(string slug, CancellationToken ct) =>
-        await Published(slug).Select(e => (int?)e.Id).FirstOrDefaultAsync(ct) ?? throw EventNotFound(slug);
-
-    private static AppException EventNotFound(string slug) =>
-        new(StatusCodes.Status404NotFound, "EVENT_NOT_FOUND", "ไม่พบงานนี้", new { slug });
+        await Published(slug).Select(e => (int?)e.Id).FirstOrDefaultAsync(ct) ?? throw OrderErrors.EventNotFound(slug);
 }

@@ -42,7 +42,7 @@ public class ErrorHandlingTests
     }
 
     [Fact]
-    public async Task Order_rule_exception_maps_to_its_status_and_code()
+    public async Task Order_error_maps_to_its_status_and_code()
     {
         var (status, body, _) = await Handle(OrderErrors.QuotaFull(7, "5K"));
         Assert.Equal(409, status);

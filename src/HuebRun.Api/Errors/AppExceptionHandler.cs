@@ -1,4 +1,4 @@
-using HuebRun.Infrastructure.Orders;
+using HuebRun.Domain;
 using Microsoft.AspNetCore.Diagnostics;
 
 namespace HuebRun.Api.Errors;
@@ -14,10 +14,6 @@ public sealed class AppExceptionHandler(ILogger<AppExceptionHandler> logger) : I
             case AppException app:
                 status = app.StatusCode;
                 body = new ErrorResponse(app.Code, app.Message, app.Details);
-                break;
-            case OrderRuleException rule:
-                status = rule.StatusCode;
-                body = new ErrorResponse(rule.Code, rule.Message, rule.Details);
                 break;
             default:
                 logger.LogError(exception, "Unhandled exception");

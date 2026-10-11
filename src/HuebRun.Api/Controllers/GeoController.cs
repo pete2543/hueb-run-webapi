@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
 using HuebRun.Api.Contracts;
-using HuebRun.Api.Errors;
 using HuebRun.Api.Geo;
+using HuebRun.Domain;
 using HuebRun.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
