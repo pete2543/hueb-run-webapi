@@ -13,6 +13,18 @@ public sealed class PostgresFixture : IAsyncLifetime
     public AppDbContext CreateDbContext() =>
         new(new DbContextOptionsBuilder<AppDbContext>().UseNpgsql(ConnectionString).Options);
 
+    // ฐานข้อมูลใหม่ว่าง ๆ ใน container เดียวกัน สำหรับ test ที่ต้องเริ่มจากตารางว่าง
+    public async Task<AppDbContext> CreateFreshDatabaseAsync()
+    {
+        var name = "t_" + Guid.NewGuid().ToString("N")[..12];
+        await using (var admin = CreateDbContext())
+            await admin.Database.ExecuteSqlRawAsync($"CREATE DATABASE {name}");
+        var conn = new Npgsql.NpgsqlConnectionStringBuilder(ConnectionString) { Database = name }.ConnectionString;
+        var db = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>().UseNpgsql(conn).Options);
+        await db.Database.MigrateAsync();
+        return db;
+    }
+
     public async Task InitializeAsync()
     {
         await _container.StartAsync();
