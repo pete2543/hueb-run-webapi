@@ -1,7 +1,7 @@
-using System.Globalization;
+using Amazon.Runtime;
+using Amazon.S3;
+using Amazon.S3.Model;
 using Microsoft.Extensions.Options;
-using Minio;
-using Minio.DataModel.Args;
 
 namespace HuebRun.Infrastructure.Payments;
 
@@ -13,37 +13,44 @@ public interface ISlipStorage
     Task DeleteAsync(string key, CancellationToken ct);
 }
 
-public sealed class MinioSlipStorage(IMinioClient client, IOptions<MinioOptions> options) : ISlipStorage
+/// S3 API ใดก็ได้: MinIO ของบริษัท (path-style) หรือ Railway Bucket/Tigris (virtual-hosted, region "auto")
+public sealed class S3SlipStorage(IAmazonS3 s3, IOptions<MinioOptions> options) : ISlipStorage
 {
     private string Bucket => options.Value.Bucket;
 
+    public static IAmazonS3 CreateClient(MinioOptions o, HttpClientFactory? httpClientFactory = null)
+    {
+        // ยอมทั้ง "host:port" และ URL เต็ม (ค่า ENDPOINT ของ Railway มี https:// มาด้วย)
+        var endpoint = o.Endpoint.Contains("://") ? o.Endpoint : (o.UseSsl ? "https://" : "http://") + o.Endpoint;
+        var config = new AmazonS3Config
+        {
+            ServiceURL = endpoint,
+            ForcePathStyle = o.ForcePathStyle,
+            AuthenticationRegion = o.Region,
+            // ผู้ให้บริการ S3-compatible หลายเจ้าไม่รองรับ checksum แบบใหม่ของ SDK v4
+            RequestChecksumCalculation = RequestChecksumCalculation.WHEN_REQUIRED,
+            ResponseChecksumValidation = ResponseChecksumValidation.WHEN_REQUIRED,
+        };
+        if (httpClientFactory is not null) config.HttpClientFactory = httpClientFactory;
+        return new AmazonS3Client(new BasicAWSCredentials(o.AccessKey, o.SecretKey), config);
+    }
+
     public async Task PutAsync(string key, byte[] content, string contentType, CancellationToken ct)
     {
-        UseInvariantCulture();
         using var stream = new MemoryStream(content);
-        await client.PutObjectAsync(new PutObjectArgs()
-            .WithBucket(Bucket).WithObject(key)
-            .WithStreamData(stream).WithObjectSize(content.Length)
-            .WithContentType(contentType), ct);
+        await s3.PutObjectAsync(new PutObjectRequest
+        {
+            BucketName = Bucket, Key = key, InputStream = stream, ContentType = contentType,
+        }, ct);
     }
 
     public async Task<byte[]> GetAsync(string key, CancellationToken ct)
     {
-        UseInvariantCulture();
+        using var response = await s3.GetObjectAsync(Bucket, key, ct);
         using var buffer = new MemoryStream();
-        await client.GetObjectAsync(new GetObjectArgs()
-            .WithBucket(Bucket).WithObject(key)
-            .WithCallbackStream((stream, token) => stream.CopyToAsync(buffer, token)), ct);
+        await response.ResponseStream.CopyToAsync(buffer, ct);
         return buffer.ToArray();
     }
 
-    public async Task DeleteAsync(string key, CancellationToken ct)
-    {
-        UseInvariantCulture();
-        await client.RemoveObjectAsync(new RemoveObjectArgs().WithBucket(Bucket).WithObject(key), ct);
-    }
-
-    // SDK ลงวันที่ใน signature ตาม culture ปัจจุบัน: th-TH ได้ปี พ.ศ. → SignatureDoesNotMatch
-    // ตั้งใน async method จึงมีผลแค่ใน method นี้ ไม่รั่วกลับไปหาคนเรียก
-    private static void UseInvariantCulture() => CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+    public Task DeleteAsync(string key, CancellationToken ct) => s3.DeleteObjectAsync(Bucket, key, ct);
 }

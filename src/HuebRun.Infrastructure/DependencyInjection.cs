@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Minio;
 
 namespace HuebRun.Infrastructure;
 
@@ -41,12 +40,8 @@ public static class DependencyInjection
             http.BaseAddress = new Uri(o.BaseUrl.TrimEnd('/') + "/");
             http.Timeout = TimeSpan.FromSeconds(o.TimeoutSeconds);
         });
-        services.AddSingleton<IMinioClient>(sp =>
-        {
-            var o = sp.GetRequiredService<IOptions<MinioOptions>>().Value;
-            return new MinioClient().WithEndpoint(o.Endpoint).WithCredentials(o.AccessKey, o.SecretKey).WithSSL(o.UseSsl).Build();
-        });
-        services.AddSingleton<ISlipStorage, MinioSlipStorage>();
+        services.AddSingleton(sp => S3SlipStorage.CreateClient(sp.GetRequiredService<IOptions<MinioOptions>>().Value));
+        services.AddSingleton<ISlipStorage, S3SlipStorage>();
         return services;
     }
 }

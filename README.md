@@ -27,7 +27,8 @@ API อยู่ที่ `http://localhost:5144/api/v1` · health: `/health` ·
 | `SlipOk:ApiKey` | ✓ | 〃 | จากหน้า SlipOK |
 | `Minio:AccessKey` | ✓ | 〃 | |
 | `Minio:SecretKey` | ✓ | 〃 | |
-| `Minio:Endpoint`, `Minio:Bucket`, `Minio:UseSsl` | | 〃 | dev: `192.168.155.208:9000`, `huebrun-slips` (private), `false` |
+| `Minio:Endpoint`, `Minio:Bucket`, `Minio:UseSsl` | | 〃 | dev: `192.168.155.208:9000`, `huebrun-slips` (private), `false` · Railway: ดู deploy guide |
+| `Minio:Region`, `Minio:ForcePathStyle` | | | MinIO: `us-east-1`, `true` (ค่าเริ่ม) · Railway Bucket: `auto`, `false` |
 | `Payments:Mode` | | | dev: `Fake`; ไม่ตั้ง = ของจริง |
 | `Cors:AllowedOrigins` | | | `http://localhost:3000` |
 

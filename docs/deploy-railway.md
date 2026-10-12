@@ -18,16 +18,18 @@ Service API → **Variables** → Raw Editor แล้ววาง (แก้ค
 ConnectionStrings__DefaultConnection=Host=${{Postgres.PGHOST}};Port=${{Postgres.PGPORT}};Database=${{Postgres.PGDATABASE}};Username=${{Postgres.PGUSER}};Password=${{Postgres.PGPASSWORD}}
 SlipOk__BranchId=<Branch ID จาก SlipOK>
 SlipOk__ApiKey=<API key จาก SlipOK>
-Minio__Endpoint=storage.railway.app
-Minio__UseSsl=true
-Minio__Bucket=<ชื่อ bucket จริงในแท็บ Credentials ของ Bucket>
-Minio__AccessKey=<Access Key ID จากแท็บ Credentials ของ Bucket>
-Minio__SecretKey=<Secret Access Key จากแท็บ Credentials ของ Bucket>
+Minio__Endpoint=${{<ชื่อ bucket>.ENDPOINT}}
+Minio__Region=${{<ชื่อ bucket>.REGION}}
+Minio__Bucket=${{<ชื่อ bucket>.BUCKET}}
+Minio__AccessKey=${{<ชื่อ bucket>.ACCESS_KEY_ID}}
+Minio__SecretKey=${{<ชื่อ bucket>.SECRET_ACCESS_KEY}}
+Minio__ForcePathStyle=false
 Cors__AllowedOrigins__0=<URL หน้าบ้าน เช่น https://huebrun.example.com>
 ```
 
 - `${{Postgres.…}}` คือ reference variable ของ Railway — ใช้ตามนี้ได้เลยถ้า service Postgres ชื่อ `Postgres` (ต่อผ่าน private network ไม่ออกเน็ต) · ห้ามใช้ `DATABASE_URL` ตรง ๆ เพราะ Npgsql ไม่รับรูปแบบ `postgresql://`
-- ชื่อ bucket ใน Credentials อาจมีรหัสต่อท้าย (ไม่ใช่ชื่อที่ตั้ง) ให้ copy จากหน้านั้น
+- `<ชื่อ bucket>` = ชื่อ service ของ bucket บน canvas (เช่น `lightweight-tin`) — Railway แทนค่าเอง ไม่ต้อง copy key มาวาง · `BUCKET` คือชื่อจริงที่มีรหัสต่อท้าย (เช่น `lightweight-tin-x1eceftla`)
+- `Minio__ForcePathStyle=false` จำเป็น: bucket ของ Railway (Tigris) ที่สร้างใหม่รับแค่ URL แบบ `https://<bucket>.t3.storageapi.dev/...` (ชื่อ `Minio__*` ใช้กับ object storage แบบ S3 ทุกเจ้า ไม่ใช่เฉพาะ MinIO)
 - หน้าบ้านหลายโดเมนเพิ่ม `Cors__AllowedOrigins__1=...`
 - **ห้ามตั้ง** `Payments__Mode=Fake` — production แอปจะไม่ยอมเริ่ม (โหมดจำลองใช้ได้แค่ Development)
 - ไม่ต้องตั้ง `PORT` / `ASPNETCORE_ENVIRONMENT` (Railway ส่ง `PORT` มาเอง, image ตั้ง Production ไว้แล้ว)
@@ -62,7 +64,7 @@ production ไม่มี seed งานตัวอย่าง และย�
 2. โอนจริงตามยอด (ยอดเล็ก ๆ ด้วยโค้ดส่วนลดทดสอบ) → อัปสลิป → `Paid` + มีเลขบิบ
 3. Bucket → ดูว่ามีไฟล์ `slips/<eventId>/<orderId>/<paymentId>.jpg`
 
-ถ้าอัปสลิปได้ 500 ที่ขั้นเก็บรูป (log มี error จาก Minio) ให้ส่ง log มา — อาจต้องตั้ง region ของ bucket เพิ่ม
+ถ้าอัปสลิปได้ 500 ที่ขั้นเก็บรูป ดู log: `403`/`SignatureDoesNotMatch` = ค่า `Minio__*` ไม่ตรงกับ bucket หรือลืม `Minio__ForcePathStyle=false` / `Minio__Region=auto`
 
 ## อื่น ๆ
 
