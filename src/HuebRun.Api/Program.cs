@@ -4,9 +4,15 @@ using HuebRun.Api.Errors;
 using HuebRun.Api.Geo;
 using HuebRun.Api.Jobs;
 using HuebRun.Infrastructure;
+using HuebRun.Infrastructure.Payments;
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// โหมดจำลองการชำระเงินให้ "จ่ายผ่าน" ได้โดยไม่มีเงินจริง ห้ามหลุดไปนอกเครื่อง dev
+var fakePayments = builder.Configuration.GetValue<string>("Payments:Mode") == PaymentOptions.FakeMode;
+if (fakePayments && !builder.Environment.IsDevelopment())
+    throw new InvalidOperationException($"Payments:Mode=Fake is only allowed in Development (current: {builder.Environment.EnvironmentName})");
 
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddSingleton(TimeProvider.System);
@@ -30,6 +36,8 @@ var origins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string
 builder.Services.AddCors(o => o.AddDefaultPolicy(p => p.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod()));
 
 var app = builder.Build();
+if (fakePayments)
+    app.Logger.LogWarning("Payments:Mode=Fake — slips are NOT verified with SlipOK and are stored on local disk");
 
 app.UseExceptionHandler();
 app.UseCors();

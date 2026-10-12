@@ -180,6 +180,23 @@ Payment ล่าสุดของออเดอร์ (`null` ถ้ายั
 8. ออเดอร์ฟรี → ข้ามไปหน้า 6
 9. กลับมาเปิดหน้า 5 ระหว่าง `Verifying` (ปิดแอปไปแล้วเปิดใหม่) → เข้าโหมดกำลังตรวจสอบ + poll
 
+## โหมดจำลองบนเครื่อง dev (ไม่ต้องโอนจริง)
+
+API ในเครื่อง dev ตั้ง `Payments:Mode = Fake` ไว้ (`appsettings.Development.json`): ไม่เรียก SlipOK, เก็บรูปในเครื่อง และ**ชื่อไฟล์ที่อัปโหลดเป็นตัวเลือกผลตรวจ** (ไม่สนตัวพิมพ์):
+
+| ชื่อไฟล์มีคำว่า | ผล |
+|---|---|
+| (อื่น ๆ เช่น `slip.png`) | `200 Verified` → `Paid` |
+| `amount` | `422 SLIP_REJECTED` `AMOUNT_MISMATCH` |
+| `receiver` | `422 SLIP_REJECTED` `WRONG_RECEIVER` |
+| `invalid` | `422 SLIP_REJECTED` `INVALID_SLIP` |
+| `delay` | `202 Verifying` → ประมาณ 1–2 นาทีต่อมา worker ตรวจซ้ำแล้วเป็น `Paid` (ใช้ลอง polling) |
+| `review` | `202 NeedsReview` `DUPLICATE_UNKNOWN` |
+
+- ต้องเป็นรูป jpg/png/webp จริง (เช็ก magic bytes) และ **รูปเดียวกันส่งซ้ำได้ครั้งเดียว** (`409 SLIP_DUPLICATE`) — ลองหลายรอบให้ใช้รูปต่างกัน
+- QR ในโหมดนี้ใช้เลข PromptPay ตัวอย่าง สแกนโอนจริงไม่ได้
+- ตอนต่อของจริง (SlipOK/MinIO) ฝั่งหลังบ้านลบ `Payments:Mode` แล้วตั้ง key — สัญญา API เหมือนเดิมทุกอย่าง
+
 ## ยังไม่มี (อย่าเพิ่งทำ)
 
 - หน้าแอดมินตรวจสลิป (`NeedsReview`) และดูรูปสลิป — เฟส admin

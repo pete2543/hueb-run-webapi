@@ -2,8 +2,8 @@ using System.Security.Cryptography;
 
 namespace HuebRun.Infrastructure.Payments;
 
-/// รูปสลิปที่ผ่านการตรวจชนิดไฟล์แล้ว (Extension/ContentType มาจาก magic bytes)
-public sealed record SlipImage(byte[] Content, string Extension, string ContentType)
+/// รูปสลิปที่ผ่านการตรวจชนิดไฟล์แล้ว (Extension/ContentType มาจาก magic bytes; OriginalName = ชื่อไฟล์ที่อัปโหลด ถ้ามี)
+public sealed record SlipImage(byte[] Content, string Extension, string ContentType, string? OriginalName = null)
 {
     public string Sha256 => Convert.ToHexStringLower(SHA256.HashData(Content));
 }
