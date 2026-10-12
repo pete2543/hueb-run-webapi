@@ -1,8 +1,12 @@
+using HuebRun.Domain;
+using HuebRun.Infrastructure.Admin;
 using HuebRun.Infrastructure.Orders;
+using Microsoft.AspNetCore.Identity;
 using HuebRun.Infrastructure.Payments;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
 namespace HuebRun.Infrastructure;
@@ -13,6 +17,7 @@ public static class DependencyInjection
     {
         services.AddDbContext<AppDbContext>(o =>
             o.UseNpgsql(config.GetConnectionString("DefaultConnection") ?? ""));
+        services.AddAdmin(config);
         services.AddScoped<OrderService>();
         services.AddScoped<OrderPaymentService>();
         services.AddScoped<OrderExpiryService>();
@@ -43,5 +48,39 @@ public static class DependencyInjection
         services.AddSingleton(sp => S3SlipStorage.CreateClient(sp.GetRequiredService<IOptions<MinioOptions>>().Value));
         services.AddSingleton<ISlipStorage, S3SlipStorage>();
         return services;
+    }
+
+    private static void AddAdmin(this IServiceCollection services, IConfiguration config)
+    {
+        services.AddOptions<AdminOptions>().Bind(config.GetSection("Admin")).ValidateDataAnnotations().ValidateOnStart();
+        services.AddIdentityCore<AdminUser>(o =>
+            {
+                o.Password.RequiredLength = 10;
+                o.Password.RequireNonAlphanumeric = false;
+                o.Password.RequireUppercase = false;
+                o.Password.RequireLowercase = false;
+                o.Password.RequireDigit = false;
+                o.User.RequireUniqueEmail = true;
+                o.Lockout.AllowedForNewUsers = true;
+            })
+            .AddRoles<IdentityRole<Guid>>()
+            .AddEntityFrameworkStores<AppDbContext>();
+        services.AddOptions<IdentityOptions>().Configure<IOptions<AdminOptions>>((id, admin) =>
+        {
+            id.Lockout.MaxFailedAccessAttempts = admin.Value.MaxFailedAttempts;
+            id.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(admin.Value.LockoutMinutes);
+        });
+        services.TryAddScoped<ICurrentAdmin, NoCurrentAdmin>();
+        services.AddScoped<AuditWriter>();
+        services.AddSingleton<AdminTokenService>();
+        services.AddScoped<AdminAuthService>();
+        services.AddScoped<AdminUserService>();
+        services.AddScoped<AdminPaymentService>();
+        services.AddScoped<AdminOrderService>();
+        services.AddScoped<AdminEventService>();
+        services.AddScoped<AdminDashboardService>();
+        services.AddScoped<AdminPromoService>();
+        services.AddScoped<AdminRunnerService>();
+        services.AddScoped<AdminCheckInService>();
     }
 }

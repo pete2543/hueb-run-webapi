@@ -1,4 +1,5 @@
 using HuebRun.Infrastructure;
+using HuebRun.Infrastructure.Admin;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Npgsql;
@@ -27,6 +28,7 @@ public static class DatabaseStartup
                 return;
             }
             await DatabaseSeeder.RunAsync(db, includeDevData: app.Environment.IsDevelopment());
+            await AdminBootstrap.RunAsync(scope.ServiceProvider);
         }
         catch (NpgsqlException ex)
         {

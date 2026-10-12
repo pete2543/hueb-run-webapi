@@ -91,7 +91,7 @@ multipart ฟิลด์ `file` (.jpg .jpeg .png .webp ไม่เกิน 5 
 - `422 SLIP_REJECTED` details `{ paymentId, reason: INVALID_SLIP | AMOUNT_MISMATCH | WRONG_RECEIVER | DUPLICATE_SLIP }` — อัปโหลดใหม่ได้
 - `400 VALIDATION_ERROR` (`details.file`), `404 ORDER_NOT_FOUND`, `409 ORDER_ALREADY_PAID`, `409 ORDER_NOT_PAYABLE`, `409 PAYMENT_IN_PROGRESS`, `409 SLIP_DUPLICATE`
 
-`GET /orders/{id}` มีฟิลด์ `payment: { paymentId, status, rejectReason } | null` (ล่าสุด)
+`GET /orders/{id}` มีฟิลด์ `payment: { paymentId, status, rejectReason } | null` (`GET /orders/{id}/payment` มี `note` เพิ่ม = เหตุผลที่เจ้าหน้าที่ปฏิเสธ) (ล่าสุด)
 ออเดอร์ยอด 0 บาท (โค้ดฟรี + รับเอง) เป็น `Paid` ทันทีตอนสร้าง `payableAmount = 0`
 
 ## Admin
@@ -100,29 +100,36 @@ multipart ฟิลด์ `file` (.jpg .jpeg .png .webp ไม่เกิน 5 
 
 | Method | Path | หน้า | บทบาทที่ทำได้ |
 |---|---|---|---|
-| POST | `/admin/auth/login` | – | ทุกบทบาท |
-| GET | `/admin/events/{id}/dashboard` | 8 | Organizer, Finance, SuperAdmin |
-| GET | `/admin/events/{id}/orders?status=&q=&page=` | 9 | Organizer, Finance, SuperAdmin |
-| GET | `/admin/events/{id}/orders/export` | 9 | Organizer, SuperAdmin (Excel) |
-| GET | `/admin/orders/{id}` | 9 | |
-| PATCH | `/admin/orders/{id}/tracking` | 9 | Organizer (เลขพัสดุ → ส่ง LINE) |
-| GET | `/admin/events/{id}/payments?status=NeedsReview` | 10 | Finance, SuperAdmin |
-| POST | `/admin/payments/{id}/approve` | 10 | Finance (ออกเลขบิบ + ส่ง LINE + AuditLog) |
-| POST | `/admin/payments/{id}/reject` | 10 | Finance (ต้องมีเหตุผล) |
-| GET | `/admin/events/{id}/registrations?distance=&q=` | 11 | |
-| GET/PUT | `/admin/events/{id}/distances` | 12 | Organizer (ลดโควตาต่ำกว่าที่จองไม่ได้) |
-| GET/PUT | `/admin/events/{id}/shirt-sizes` | 12 | Organizer |
-| PUT | `/admin/events/{id}` | 12 | Organizer (เวลาเปิด/ปิด, PromptPay ต่อ Event) |
-| GET/POST/PUT | `/admin/events/{id}/promos` | 13 | Organizer |
-| POST | `/admin/checkin/scan` | 14 | Staff, Organizer (`{ "token": "..." }`) |
+| POST | `/admin/auth/login` | – | ทุกบทบาท · body `{ email, password }` → `{ token, expiresAt, user: { id, name, email, role, isActive, eventIds, createdAt, lastLoginAt } }` · ส่ง `Authorization: Bearer <token>` (อายุ 8 ชม.) · ผิด 5 ครั้งล็อก 15 นาที (ตอบ `401 INVALID_CREDENTIALS` เหมือนกันทุกกรณี) · `429` เมื่อเกิน rate limit ต่อ IP |
+| GET | `/admin/auth/me` | – | ทุกบทบาท |
+| POST | `/admin/auth/change-password` | – | ทุกบทบาท · `{ currentPassword, newPassword }` → `204` token เดิมใช้ไม่ได้ |
+| GET | `/admin/events/{id}/dashboard` | 8 | Organizer, Finance, SuperAdmin · `{ orders: {total,paid,pending,expired,cancelled,refunded}, paidRunners, pendingRunners, payments: {needsReview,verifying}, revenue: {paid,pendingAmount}, distances[{quota,reserved,remaining,paidRunners,pendingRunners}], shirts[{stock,reserved,remaining,paidRunners}] }` ตัวเลขรวมเท่านั้น ไม่มีข้อมูลส่วนบุคคล · Pending ที่เลยเวลานับเป็น expired · revenue = ยอดโอน (`payableAmount`) |
+| GET | `/admin/events/{id}/orders?status=&q=&page=&pageSize=` | 9 | Organizer, Finance, SuperAdmin · `{ items, page, pageSize, total }` ใหม่สุดก่อน · `status` Pending/Paid/Expired/Cancelled/Refunded (Pending ที่เลยเวลานับเป็น Expired) · `q` ค้นเลขออเดอร์/ชื่อผู้ติดต่อ/เบอร์/ชื่อนักวิ่ง/เลขบิบ |
+| GET | `/admin/events/{id}/orders/export` | 9 | Organizer, SuperAdmin · ไฟล์ `.xlsx` นักวิ่งที่จ่ายแล้วทั้งงาน (มีข้อมูลอ่อนไหวครบ) · ทุกครั้งลง AuditLog `export.runners` |
+| GET | `/admin/orders/{id}` | 9 | Organizer, Finance, SuperAdmin · ออเดอร์ + นักวิ่ง + Payment ทุกใบ · Finance ไม่เห็นข้อมูลอ่อนไหว (อีเมล, ที่อยู่/เบอร์จัดส่ง, วันเกิด, เลขบัตร, ผู้ติดต่อฉุกเฉิน, MedicalNote → `null`) |
+| PATCH | `/admin/orders/{id}/tracking` | 9 | Organizer, SuperAdmin · `{ trackingNo }` (ว่าง = ล้าง) เฉพาะออเดอร์ Paid ที่เลือกส่งไปรษณีย์ `409 TRACKING_NOT_ALLOWED` · (การส่ง LINE รอระบบแจ้งเตือน) |
+| GET | `/admin/events/{id}/payments?status=&page=&pageSize=` | 10 | Finance, SuperAdmin · `{ items, page, pageSize, total }` ใหม่สุดก่อน · ต้องมีสิทธิ์งานนั้น (SuperAdmin ได้ทุกงาน) |
+| GET | `/admin/payments/{id}/slip` | 10 | Finance, SuperAdmin · `{ url, expiresAt }` ลิงก์รูปสลิปอายุ 5 นาที |
+| POST | `/admin/payments/{id}/approve` | 10 | Finance · เฉพาะ `NeedsReview` → ออเดอร์ `Paid` + เลขบิบ + AuditLog · ออเดอร์หมดเวลา (`ORDER_EXPIRED`) จองโควตา/เสื้อใหม่ ถ้าเต็ม `409 CAPACITY_FULL` · ออเดอร์จ่ายแล้ว (`ALREADY_PAID`) `409 APPROVE_NOT_ALLOWED` · `409 PAYMENT_NOT_REVIEWABLE` เมื่อมีคนจัดการไปก่อน |
+| POST | `/admin/payments/{id}/reject` | 10 | Finance · `{ note }` (บังคับ ≤ 500 ตัวอักษร แสดงให้นักวิ่งที่ `payment.note`) → `Rejected` นักวิ่งอัปสลิปใหม่ได้ถ้าออเดอร์ยัง `Pending` |
+| POST | `/admin/payments/{id}/recheck` | 10 | Finance · เฉพาะ `VERIFY_TIMEOUT` → กลับเป็น `Verifying` ให้ job ตรวจใหม่ |
+| GET | `/admin/events/{id}/registrations?distance=&q=&page=&pageSize=` | 11 | Organizer, Finance, SuperAdmin · เฉพาะนักวิ่งที่จ่ายแล้ว · Finance ไม่เห็นข้อมูลอ่อนไหว |
+| POST | `/admin/events` | – | SuperAdmin · สร้างงาน (ยังไม่เผยแพร่) `{ name, slug, year, eventDate, registrationOpensAt, registrationClosesAt, promptPayId, promptPayAccountName, reservationMinutes? }` เวลาต้องมีเขตเวลา (เช่น `Z`) · `409 SLUG_TAKEN` |
+| GET | `/admin/events/{id}` | 12 | Organizer, SuperAdmin |
+| GET/PUT | `/admin/events/{id}/distances` | 12 | Organizer · PUT รับ array ทั้งรายการ: มี `id` = แก้, ไม่มี = เพิ่ม, ที่หายไป = ลบ (ลบไม่ได้ถ้ามีผู้สมัคร `409 IN_USE`) · ลดโควตาต่ำกว่าที่จอง `409 QUOTA_BELOW_RESERVED` · เปลี่ยน `bibPrefix` หลังออกบิบ `409 BIB_PREFIX_LOCKED` · ราคาใหม่มีผลกับออเดอร์ใหม่เท่านั้น |
+| GET/PUT | `/admin/events/{id}/shirt-sizes` | 12 | Organizer · กติกาเดียวกับ distances (`stock` ต่ำกว่าที่จอง = `409 QUOTA_BELOW_RESERVED`) |
+| GET/PUT | `/admin/events/{id}/shipping-options` | 12 | Organizer · ลบตัวที่มีออเดอร์ใช้ไม่ได้ (`409 IN_USE`) ให้ปิดด้วย `isActive=false` · งานที่เผยแพร่แล้วต้องเหลือตัวที่เปิดอย่างน้อย 1 |
+| PUT | `/admin/events/{id}` | 12 | Organizer (เวลาเปิด/ปิด, PromptPay ต่อ Event) · คืน `{ event, warnings }` — เปลี่ยน PromptPay จะมี warning ให้แก้บัญชีใน SlipOK LIFF · เผยแพร่ (`isPublished=true`) ต้องมีระยะ ไซซ์ และวิธีรับของอย่างละ 1 (`409 NOT_READY_TO_PUBLISH`) |
+| GET/POST/PUT | `/admin/events/{id}/promos[/{promoId}]` | 13 | Organizer, SuperAdmin · ไม่มีลบ ปิดด้วย `isActive=false` · โค้ดเก็บเป็นตัวพิมพ์ใหญ่ ไม่ซ้ำแบบไม่สนตัวพิมพ์ (`409 PROMO_CODE_TAKEN`) · แก้ `code` ไม่ได้ · ลด `maxUses` ต่ำกว่า `usedCount` `409 MAX_USES_BELOW_USED` |
+| POST | `/admin/checkin/scan` | 14 | Staff, Organizer, SuperAdmin (`{ "token": "..." }`) → ข้อมูลนักวิ่ง + สถานะ ไม่เปลี่ยนอะไร |
 | POST | `/admin/checkin/{registrationId}/confirm` | 14 | Staff, Organizer |
 | POST | `/admin/checkin/{registrationId}/undo` | 14 | Organizer |
-| GET | `/admin/events/{id}/checkins` | 14 | |
+| GET | `/admin/events/{id}/checkins?checkedIn=&distance=&q=&page=` | 14 | Staff, Organizer, SuperAdmin · `{ runners: {items,…}, summary: {paid, checkedIn} }` |
 | GET/POST | `/admin/events/{id}/broadcasts` | 15 | Organizer |
 | POST | `/admin/broadcasts/{id}/send` | 15 | Organizer (ตรวจจำนวนผู้รับก่อน) |
 | GET | `/admin/events/{id}/refunds` | 16 | Finance |
 | POST | `/admin/refunds/{id}/approve` · `/reject` · `/complete` | 16 | Finance |
-| GET/POST/PATCH | `/admin/users` | 17 | SuperAdmin |
+| GET/POST/PATCH | `/admin/users` | 17 | SuperAdmin · POST `{ name, email, password, role, eventIds }` → `201` · PATCH `/admin/users/{id}` `{ name?, role?, isActive?, eventIds?, newPassword? }` (เปลี่ยนบทบาท/ปิดบัญชี/รีเซ็ตรหัส → token เดิมใช้ไม่ได้ทันที; ปิด/ลดบทบาทตัวเองไม่ได้ `409 CANNOT_CHANGE_SELF`; `400 WEAK_PASSWORD`, `409 EMAIL_TAKEN`) |
 | GET | `/admin/audit?userId=&action=&from=&to=` | 18 | SuperAdmin |
 
 เมื่ออนุมัติคืนเงิน: คืนโควตา/ไซซ์เสื้อ ยกเลิกเลขบิบ และส่งแจ้งเตือน

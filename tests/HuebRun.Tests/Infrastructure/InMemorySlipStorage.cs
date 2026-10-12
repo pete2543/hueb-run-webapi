@@ -23,4 +23,7 @@ public sealed class InMemorySlipStorage : ISlipStorage
         Objects.TryRemove(key, out _);
         return Task.CompletedTask;
     }
+
+    public Task<string> GetPresignedUrlAsync(string key, TimeSpan ttl, CancellationToken ct) =>
+        Objects.ContainsKey(key) ? Task.FromResult($"https://storage.test/{key}?ttl={(int)ttl.TotalSeconds}") : throw new FileNotFoundException(key);
 }

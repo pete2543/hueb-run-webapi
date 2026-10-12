@@ -28,6 +28,9 @@ API อยู่ที่ `http://localhost:5144/api/v1` · health: `/health` ·
 | `Minio:AccessKey` | ✓ | 〃 | |
 | `Minio:SecretKey` | ✓ | 〃 | |
 | `Minio:Endpoint`, `Minio:Bucket`, `Minio:UseSsl` | | 〃 | dev: `192.168.155.208:9000`, `huebrun-slips` (private), `false` · Railway: ดู deploy guide |
+| `Admin:JwtSecret` | ✓ | ลงนาม token แอดมิน ≥ 32 ตัวอักษร สุ่มยาว ๆ (แอปไม่ขึ้นถ้าขาด) | dev มีค่าใน `appsettings.Development.json` · Railway: ตั้ง `Admin__JwtSecret` |
+| `Admin:BootstrapEmail`, `Admin:BootstrapPassword` | | สร้าง SuperAdmin คนแรกตอนแอปเริ่ม (เมื่อยังไม่มี SuperAdmin เลย) รหัสผ่าน ≥ 10 ตัว | ใส่ครั้งเดียว login แล้วเปลี่ยนรหัส (`POST /admin/auth/change-password`) และลบตัวแปรทิ้ง |
+| `RateLimits:OrdersPerWindow`, `RateLimits:SlipsPerWindow`, `RateLimits:WindowMinutes` | | จำกัดต่อ IP: สร้างออเดอร์ / อัปสลิป ต่อหน้าต่างเวลา (นาที) เกินแล้ว `429 TOO_MANY_REQUESTS` + `Retry-After` | ค่าเริ่ม `10`, `20`, `10` (เผื่อหลายคนใช้ Wi-Fi เดียวกัน) |
 | `Minio:Region`, `Minio:ForcePathStyle` | | | MinIO: `us-east-1`, `true` (ค่าเริ่ม) · Railway Bucket: `auto`, `false` |
 | `Payments:Mode` | | | dev: `Fake`; ไม่ตั้ง = ของจริง |
 | `Cors:AllowedOrigins` | | | `http://localhost:3000` |

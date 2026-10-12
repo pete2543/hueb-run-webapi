@@ -14,7 +14,9 @@ public sealed class PostgresFixture : IAsyncLifetime
         new(new DbContextOptionsBuilder<AppDbContext>().UseNpgsql(ConnectionString).Options);
 
     // ฐานข้อมูลใหม่ว่าง ๆ ใน container เดียวกัน สำหรับ test ที่ต้องเริ่มจากตารางว่าง
-    public async Task<AppDbContext> CreateFreshDatabaseAsync()
+    public async Task<AppDbContext> CreateFreshDatabaseAsync() => (await CreateFreshDatabaseWithConnectionAsync()).Db;
+
+    public async Task<(AppDbContext Db, string ConnectionString)> CreateFreshDatabaseWithConnectionAsync()
     {
         var name = "t_" + Guid.NewGuid().ToString("N")[..12];
         await using (var admin = CreateDbContext())
@@ -22,7 +24,7 @@ public sealed class PostgresFixture : IAsyncLifetime
         var conn = new Npgsql.NpgsqlConnectionStringBuilder(ConnectionString) { Database = name }.ConnectionString;
         var db = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>().UseNpgsql(conn).Options);
         await db.Database.MigrateAsync();
-        return db;
+        return (db, conn);
     }
 
     // ฐานข้อมูลใหม่ที่ยังไม่มีตารางเลย (ไม่ migrate) คืน connection string

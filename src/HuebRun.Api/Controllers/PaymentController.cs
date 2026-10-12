@@ -1,6 +1,7 @@
 using HuebRun.Domain;
 using HuebRun.Infrastructure.Payments;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Options;
 
 namespace HuebRun.Api.Controllers;
@@ -14,6 +15,7 @@ public sealed class PaymentController(PaymentService payments, IOptions<MinioOpt
         payments.GetPaymentInfoAsync(orderId, ct);
 
     [HttpPost("slip")]
+    [EnableRateLimiting(RateLimiting.UploadSlip)]
     [RequestFormLimits(MultipartBodyLengthLimit = 10 * 1024 * 1024)]
     public async Task<IActionResult> UploadSlip(Guid orderId, IFormFile? file, CancellationToken ct)
     {

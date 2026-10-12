@@ -1,10 +1,14 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using HuebRun.Domain;
 using HuebRun.Infrastructure.Orders;
+using HuebRun.Infrastructure.Admin;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HuebRun.Tests.Infrastructure;
 
@@ -29,10 +33,11 @@ public abstract class OrderTestBase(PostgresFixture pg) : IAsyncLifetime
     protected int ThaiId { get; private set; }
 
     protected virtual void ConfigureEvent(Event e) { }
+    protected virtual IReadOnlyDictionary<string, string>? Settings => null;
 
     public async Task InitializeAsync()
     {
-        Factory = new ApiFactory(Pg.ConnectionString);
+        Factory = new ApiFactory(Pg.ConnectionString, settings: Settings);
         Client = Factory.CreateClient();   // เริ่มแอป → seed lookups/geo
         await using var db = Pg.CreateDbContext();
         Ev = await TestData.CreateRegistrationEventAsync(db, ConfigureEvent);
@@ -57,6 +62,30 @@ public abstract class OrderTestBase(PostgresFixture pg) : IAsyncLifetime
         new ContactInput("สมชาย ใจดี", "081-234-5678", "somchai@example.com"),
         runners.Length == 0 ? [Runner()] : [.. runners],
         Pickup.Id, ShippingAddress: null, PromoCode: null, AcceptedPdpa: true);
+
+    /// client ที่ login เป็นแอดมินบทบาท/งานที่ระบุ
+    protected const string Password = "correct-horse-battery";
+
+    protected async Task<HttpClient> AdminClient(string role, params int[] eventIds)
+    {
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var users = scope.ServiceProvider.GetRequiredService<UserManager<AdminUser>>();
+            var email = $"{role.ToLowerInvariant()}-{Guid.NewGuid():N}@example.com";
+            var user = new AdminUser
+            {
+                Id = Guid.NewGuid(), UserName = email, Email = email, DisplayName = role, IsActive = true, LockoutEnabled = true,
+                CreatedAt = DateTime.UtcNow, EventAccesses = [.. eventIds.Select(e => new AdminEventAccess { EventId = e })],
+            };
+            Assert.True((await users.CreateAsync(user, Password)).Succeeded);
+            Assert.True((await users.AddToRoleAsync(user, role)).Succeeded);
+            var login = await Factory.CreateClient().PostAsJsonAsync("/api/v1/admin/auth/login", new { email, password = Password });
+            var token = (await login.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("token").GetString();
+            var client = Factory.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            return client;
+        }
+    }
 
     protected Task<HttpResponseMessage> PostOrder(CreateOrderRequest request) =>
         Client.PostAsJsonAsync($"/api/v1/events/{Ev.Slug}/orders", request, Json);

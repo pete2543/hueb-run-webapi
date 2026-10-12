@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.RateLimiting;
 using HuebRun.Infrastructure.Orders;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,6 +13,7 @@ public sealed class RegistrationController(OrderService orders) : ControllerBase
         orders.ValidatePromoAsync(slug, request, ct);
 
     [HttpPost("orders")]
+    [EnableRateLimiting(RateLimiting.CreateOrder)]
     public async Task<IActionResult> CreateOrder(string slug, CreateOrderRequest request, CancellationToken ct)
     {
         var created = await orders.CreateOrderAsync(slug, request, ct);
