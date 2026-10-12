@@ -11,6 +11,8 @@ namespace HuebRun.Tests.Infrastructure;
 public sealed class ApiFactory(string connectionString, bool jobsEnabled = false, IReadOnlyDictionary<string, string>? settings = null)
     : WebApplicationFactory<Program>
 {
+    public const string TestJwtSecret = "test-secret-test-secret-test-secret-123";
+
     public FakeTimeProvider Time { get; } = new(new DateTimeOffset(2026, 11, 15, 0, 0, 0, TimeSpan.Zero));
     public FakeSlipVerifier Verifier { get; } = new();
     public InMemorySlipStorage Storage { get; } = new();
@@ -28,6 +30,8 @@ public sealed class ApiFactory(string connectionString, bool jobsEnabled = false
         builder.UseSetting("Minio:AccessKey", "test");
         builder.UseSetting("Minio:SecretKey", "test");
         builder.UseSetting("Minio:Bucket", "test");
+        builder.UseSetting("Admin:JwtSecret", TestJwtSecret);
+        builder.UseSetting("Admin:LoginRateLimitPerMinute", "1000");
         foreach (var (key, value) in settings ?? new Dictionary<string, string>())
             builder.UseSetting(key, value);
         builder.ConfigureTestServices(s =>

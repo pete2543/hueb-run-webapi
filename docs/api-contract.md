@@ -100,7 +100,9 @@ multipart ฟิลด์ `file` (.jpg .jpeg .png .webp ไม่เกิน 5 
 
 | Method | Path | หน้า | บทบาทที่ทำได้ |
 |---|---|---|---|
-| POST | `/admin/auth/login` | – | ทุกบทบาท |
+| POST | `/admin/auth/login` | – | ทุกบทบาท · body `{ email, password }` → `{ token, expiresAt, user: { id, name, email, role, isActive, eventIds, createdAt, lastLoginAt } }` · ส่ง `Authorization: Bearer <token>` (อายุ 8 ชม.) · ผิด 5 ครั้งล็อก 15 นาที (ตอบ `401 INVALID_CREDENTIALS` เหมือนกันทุกกรณี) · `429` เมื่อเกิน rate limit ต่อ IP |
+| GET | `/admin/auth/me` | – | ทุกบทบาท |
+| POST | `/admin/auth/change-password` | – | ทุกบทบาท · `{ currentPassword, newPassword }` → `204` token เดิมใช้ไม่ได้ |
 | GET | `/admin/events/{id}/dashboard` | 8 | Organizer, Finance, SuperAdmin |
 | GET | `/admin/events/{id}/orders?status=&q=&page=` | 9 | Organizer, Finance, SuperAdmin |
 | GET | `/admin/events/{id}/orders/export` | 9 | Organizer, SuperAdmin (Excel) |
@@ -122,7 +124,7 @@ multipart ฟิลด์ `file` (.jpg .jpeg .png .webp ไม่เกิน 5 
 | POST | `/admin/broadcasts/{id}/send` | 15 | Organizer (ตรวจจำนวนผู้รับก่อน) |
 | GET | `/admin/events/{id}/refunds` | 16 | Finance |
 | POST | `/admin/refunds/{id}/approve` · `/reject` · `/complete` | 16 | Finance |
-| GET/POST/PATCH | `/admin/users` | 17 | SuperAdmin |
+| GET/POST/PATCH | `/admin/users` | 17 | SuperAdmin · POST `{ name, email, password, role, eventIds }` → `201` · PATCH `/admin/users/{id}` `{ name?, role?, isActive?, eventIds?, newPassword? }` (เปลี่ยนบทบาท/ปิดบัญชี/รีเซ็ตรหัส → token เดิมใช้ไม่ได้ทันที; ปิด/ลดบทบาทตัวเองไม่ได้ `409 CANNOT_CHANGE_SELF`; `400 WEAK_PASSWORD`, `409 EMAIL_TAKEN`) |
 | GET | `/admin/audit?userId=&action=&from=&to=` | 18 | SuperAdmin |
 
 เมื่ออนุมัติคืนเงิน: คืนโควตา/ไซซ์เสื้อ ยกเลิกเลขบิบ และส่งแจ้งเตือน

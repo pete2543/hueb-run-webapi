@@ -1,10 +1,12 @@
 using System.Text.Json.Serialization;
 using HuebRun.Api;
+using HuebRun.Api.Auth;
 using HuebRun.Api.Errors;
 using HuebRun.Api.Geo;
 using HuebRun.Api.Jobs;
 using HuebRun.Infrastructure;
 using HuebRun.Infrastructure.Payments;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,6 +24,14 @@ if (builder.Configuration.GetValue("Jobs:OrderExpiry:Enabled", true))
 if (builder.Configuration.GetValue("Jobs:PaymentRecheck:Enabled", true))
     builder.Services.AddHostedService<PaymentRecheckWorker>();
 
+builder.Services.AddAdminAuth();
+builder.Services.Configure<ForwardedHeadersOptions>(o =>
+{
+    // อยู่หลัง proxy ของ Railway: เชื่อ X-Forwarded-For เพื่อให้ IP ใน audit/rate limit เป็นของผู้ใช้จริง
+    o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    o.KnownIPNetworks.Clear();
+    o.KnownProxies.Clear();
+});
 builder.Services.AddControllers()
     .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.Configure<ApiBehaviorOptions>(o =>
@@ -41,8 +51,12 @@ var app = builder.Build();
 if (fakePayments)
     app.Logger.LogWarning("Payments:Mode=Fake — slips are NOT verified with SlipOK and are stored on local disk");
 
+app.UseForwardedHeaders();
 app.UseExceptionHandler();
 app.UseCors();
+app.UseRateLimiter();
+app.UseAuthentication();
+app.UseAuthorization();
 if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 app.MapHealthChecks("/health");
