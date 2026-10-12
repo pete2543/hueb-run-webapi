@@ -2,8 +2,8 @@
 
 อัปเดต: 2026-10-12 · branch `feat/admin-auth` · สัญญาแบบย่ออยู่ที่ `docs/api-contract.md` (หัวข้อ Admin) ไฟล์นี้ลงรายละเอียดรูปแบบ request/response ที่ทำเสร็จแล้ว
 
-ทำแล้ว: auth, ผู้ใช้, ตรวจสลิป, ออเดอร์, ตั้งค่างาน, โค้ดส่วนลด, แดชบอร์ด, นักวิ่ง/export, เลขพัสดุ, เช็กอิน
-ยังไม่มี (อย่าเรียก): คืนเงิน, audit, ประกาศ
+ทำแล้ว: auth, ผู้ใช้, ตรวจสลิป, ออเดอร์, ตั้งค่างาน, โค้ดส่วนลด, แดชบอร์ด, นักวิ่ง/export, เลขพัสดุ, เช็กอิน, คืนเงิน
+ยังไม่มี (อย่าเรียก): audit, ประกาศ
 
 ## 1. กติกากลาง
 
@@ -189,6 +189,25 @@
 - `POST /admin/checkin/{registrationId}/undo` `{ note }` (**SuperAdmin, Organizer เท่านั้น** Staff ได้ 403) → `CheckInRunner` · `note` บังคับ ≤ 200 · `409 NOT_CHECKED_IN`
 - `GET /admin/events/{eventId}/checkins?checkedIn=true|false&distance=&q=&page=&pageSize=` → `{ runners: { items: CheckInRunner[], page, pageSize, total }, summary: { paid, checkedIn } }` · `q` ค้นชื่อ/เลขบิบ/เลขออเดอร์
 - ทุกการเช็กอิน/ยกเลิกถูกบันทึกใน CheckInLog และ AuditLog
+
+## 7.3 คืนเงิน (SuperAdmin, Finance)
+
+คืน**ทั้งใบ**เท่านั้น (ไม่มีคืนบางคน) · flow: `Requested` → `Approved` → `Completed` หรือ `Requested` → `Rejected` · ทุก action คืน refund item ใหม่ และ `409 REFUND_WRONG_STATE` (`details.status`) ถ้ามีคนทำไปก่อน → รีเฟรช
+```json
+{ "refundId": 1, "orderId": "guid", "orderNo": "…", "contactName": "…", "phone": "…", "paymentId": 12,
+  "kind": "Order|Payment", "amount": 1000.13, "reason": "…", "note": null, "status": "Requested",
+  "externalRef": null, "requestedBy": "ชื่อ", "approvedBy": null, "createdAt": "…", "processedAt": null }
+```
+- `GET /admin/events/{eventId}/refunds?status=&page=&pageSize=` (`status` ∈ Requested | Approved | Completed | Rejected)
+- `POST /admin/orders/{orderId}/refunds` `{ reason, paymentId?, amount? }` → `201`
+  - `reason` บังคับ ≤ 500 · `amount` ไม่ส่ง = คืนเต็มยอดที่จ่าย (ส่งน้อยกว่าได้ เช่น หักค่าธรรมเนียม; มากกว่า → `400`)
+  - ไม่ส่ง `paymentId` = ใช้ Payment ที่ผ่านแล้วของออเดอร์ที่จ่ายแล้ว (`kind: "Order"`) · ส่ง `paymentId` ของสลิป**รอตรวจ** (ซ้ำซ้อน `ALREADY_PAID` หรือโควตาเต็ม `CAPACITY_FULL`) = `kind: "Payment"`
+  - `409 REFUND_NOT_ALLOWED` (ออเดอร์ยังไม่จ่าย/ถูกยกเลิก/สลิปไม่อยู่ในสถานะที่คืนได้) · `409 REFUND_EXISTS` (Payment นี้มีคำขอที่ยังไม่ถูกปฏิเสธอยู่แล้ว)
+- `POST /admin/refunds/{id}/approve` — `kind: "Order"`: ยกเลิกนักวิ่งทุกคน (เช็กอินไม่ได้) คืนโควตา/ไซซ์เสื้อ/การใช้โค้ด; ออเดอร์ยังเป็น `Paid` จนกว่าจะ complete · `kind: "Payment"`: สลิปนั้นออกจากคิวตรวจสลิป (เป็น `Rejected`) ออเดอร์ไม่เปลี่ยน
+- `POST /admin/refunds/{id}/reject` `{ note }` (บังคับ ≤ 500) — ไม่แตะออเดอร์; ขอใหม่ได้
+- `POST /admin/refunds/{id}/complete` `{ externalRef, note? }` — `externalRef` บังคับ (เลขอ้างอิงการโอนคืน ≤ 100) → ออเดอร์ `kind: "Order"` เป็น `Refunded`
+- ระบบ**ไม่ได้โอนเงินให้** — แอดมินโอนคืนเองนอกระบบ แล้วค่อยกด complete พร้อมเลขอ้างอิง
+- ปุ่มที่ควรแสดง: Requested → อนุมัติ/ปฏิเสธ · Approved → "โอนคืนแล้ว" (complete) · ปุ่ม "ขอคืนเงิน" ที่หน้ารายละเอียดออเดอร์ (สถานะ Paid) และที่รายการสลิปรอตรวจ `ALREADY_PAID`/`CAPACITY_FULL`
 
 ## 8. การเปลี่ยนแปลงฝั่งนักวิ่ง (ผลข้างเคียง)
 `GET /orders/{id}/payment` → `payment` มี `note` เพิ่ม (เหตุผลที่เจ้าหน้าที่ปฏิเสธ แสดงให้นักวิ่งเห็นถ้าไม่ null)

@@ -93,4 +93,16 @@ public static class AdminErrors
 
     public static AppException TrackingNotAllowed(OrderStatus status, ShippingType type) =>
         new(409, "TRACKING_NOT_ALLOWED", "ใส่เลขพัสดุได้เฉพาะออเดอร์ที่ชำระแล้วและเลือกส่งไปรษณีย์", new { status = status.ToString(), shipping = type.ToString() });
+
+    public static AppException RefundNotFound(int id) =>
+        new(404, "REFUND_NOT_FOUND", "ไม่พบคำขอคืนเงิน", new { id });
+
+    public static AppException RefundNotAllowed(string reason) =>
+        new(409, "REFUND_NOT_ALLOWED", "คืนเงินรายการนี้ไม่ได้", new { reason });
+
+    public static AppException RefundExists() =>
+        new(409, "REFUND_EXISTS", "รายการชำระเงินนี้มีคำขอคืนเงินอยู่แล้ว");
+
+    public static AppException RefundWrongState(RefundStatus status) =>
+        new(409, "REFUND_WRONG_STATE", "สถานะคำขอไม่ถูกต้องสำหรับการทำรายการนี้ (มีคนจัดการไปก่อน?)", new { status = status.ToString() });
 }

@@ -81,6 +81,7 @@ public static class DependencyInjection
         services.AddScoped<AdminDashboardService>();
         services.AddScoped<AdminPromoService>();
         services.AddScoped<AdminRunnerService>();
+        services.AddScoped<AdminRefundService>();
         services.AddScoped<AdminCheckInService>();
     }
 }

@@ -127,8 +127,9 @@ multipart ฟิลด์ `file` (.jpg .jpeg .png .webp ไม่เกิน 5 
 | GET | `/admin/events/{id}/checkins?checkedIn=&distance=&q=&page=` | 14 | Staff, Organizer, SuperAdmin · `{ runners: {items,…}, summary: {paid, checkedIn} }` |
 | GET/POST | `/admin/events/{id}/broadcasts` | 15 | Organizer |
 | POST | `/admin/broadcasts/{id}/send` | 15 | Organizer (ตรวจจำนวนผู้รับก่อน) |
-| GET | `/admin/events/{id}/refunds` | 16 | Finance |
-| POST | `/admin/refunds/{id}/approve` · `/reject` · `/complete` | 16 | Finance |
+| GET | `/admin/events/{id}/refunds?status=&page=&pageSize=` | 16 | Finance, SuperAdmin |
+| POST | `/admin/orders/{id}/refunds` | 16 | Finance, SuperAdmin · `{ reason, paymentId?, amount? }` → `201` · คืนทั้งใบเท่านั้น (`amount` ≤ ยอดที่จ่าย ใช้หักค่าธรรมเนียมได้) · `409 REFUND_NOT_ALLOWED`, `409 REFUND_EXISTS` |
+| POST | `/admin/refunds/{id}/approve` · `/reject` `{ note }` · `/complete` `{ externalRef, note? }` | 16 | Finance, SuperAdmin · Requested→Approved→Completed (หรือ Requested→Rejected) · approve = ยกเลิกนักวิ่ง/บิบ คืนโควตา ไซซ์เสื้อ และโค้ดส่วนลด · complete = ออเดอร์ `Refunded` · `409 REFUND_WRONG_STATE` |
 | GET/POST/PATCH | `/admin/users` | 17 | SuperAdmin · POST `{ name, email, password, role, eventIds }` → `201` · PATCH `/admin/users/{id}` `{ name?, role?, isActive?, eventIds?, newPassword? }` (เปลี่ยนบทบาท/ปิดบัญชี/รีเซ็ตรหัส → token เดิมใช้ไม่ได้ทันที; ปิด/ลดบทบาทตัวเองไม่ได้ `409 CANNOT_CHANGE_SELF`; `400 WEAK_PASSWORD`, `409 EMAIL_TAKEN`) |
 | GET | `/admin/audit?userId=&action=&from=&to=` | 18 | SuperAdmin |
 
