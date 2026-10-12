@@ -27,4 +27,22 @@ public static class AdminErrors
 
     public static AppException WrongPassword() =>
         new(400, "WRONG_PASSWORD", "รหัสผ่านปัจจุบันไม่ถูกต้อง");
+
+    public static AppException Forbidden() =>
+        new(403, "FORBIDDEN", "ไม่มีสิทธิ์ทำรายการนี้");
+
+    public static AppException PaymentNotFound(int id) =>
+        new(404, "PAYMENT_NOT_FOUND", "ไม่พบรายการชำระเงิน", new { id });
+
+    public static AppException PaymentNotReviewable(PaymentStatus status) =>
+        new(409, "PAYMENT_NOT_REVIEWABLE", "รายการนี้ไม่ได้อยู่ในสถานะรอตรวจ (มีคนจัดการไปแล้ว?)", new { status = status.ToString() });
+
+    public static AppException ApproveBlocked(string reason) =>
+        new(409, "APPROVE_NOT_ALLOWED", "อนุมัติรายการนี้ไม่ได้", new { reason });
+
+    public static AppException CapacityFull(string what) =>
+        new(409, "CAPACITY_FULL", $"{what}เต็มแล้ว จองใหม่ให้ออเดอร์ที่หมดเวลาไม่ได้ — ต้องคืนเงิน", new { what });
+
+    public static AppException NoSlip(int id) =>
+        new(404, "SLIP_NOT_FOUND", "รายการนี้ไม่มีรูปสลิป", new { id });
 }

@@ -38,4 +38,15 @@ public sealed class LocalSlipStorage(string root) : ISlipStorage
         File.Delete(PathOf(key));
         return Task.CompletedTask;
     }
+
+    // dev เท่านั้น: ไม่มี URL ให้เซ็น ส่งรูปเป็น data URL แทน
+    public async Task<string> GetPresignedUrlAsync(string key, TimeSpan ttl, CancellationToken ct)
+    {
+        var bytes = await GetAsync(key, ct);
+        var type = Path.GetExtension(key).ToLowerInvariant() switch
+        {
+            ".png" => "image/png", ".webp" => "image/webp", _ => "image/jpeg",
+        };
+        return $"data:{type};base64,{Convert.ToBase64String(bytes)}";
+    }
 }

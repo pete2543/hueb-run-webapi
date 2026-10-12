@@ -11,6 +11,8 @@ public interface ISlipStorage
     Task PutAsync(string key, byte[] content, string contentType, CancellationToken ct);
     Task<byte[]> GetAsync(string key, CancellationToken ct);
     Task DeleteAsync(string key, CancellationToken ct);
+    /// ลิงก์ดูรูปอายุสั้น (bucket เป็น private เสมอ)
+    Task<string> GetPresignedUrlAsync(string key, TimeSpan ttl, CancellationToken ct);
 }
 
 /// S3 API ใดก็ได้: MinIO ของบริษัท (path-style) หรือ Railway Bucket/Tigris (virtual-hosted, region "auto")
@@ -53,4 +55,11 @@ public sealed class S3SlipStorage(IAmazonS3 s3, IOptions<MinioOptions> options) 
     }
 
     public Task DeleteAsync(string key, CancellationToken ct) => s3.DeleteObjectAsync(Bucket, key, ct);
+
+    public Task<string> GetPresignedUrlAsync(string key, TimeSpan ttl, CancellationToken ct) =>
+        s3.GetPreSignedURLAsync(new GetPreSignedUrlRequest
+        {
+            BucketName = Bucket, Key = key, Verb = HttpVerb.GET, Expires = DateTime.UtcNow.Add(ttl),
+            Protocol = options.Value.UseSsl ? Protocol.HTTPS : Protocol.HTTP,
+        });
 }

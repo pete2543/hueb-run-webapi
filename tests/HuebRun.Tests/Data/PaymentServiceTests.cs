@@ -269,4 +269,26 @@ public sealed class PaymentServiceTests(PostgresFixture pg) : OrderTestBase(pg)
         var (order, payments) = await Load(created.OrderId);
         Assert.Equal((OrderStatus.Paid, PaymentStatus.Verified), (order.Status, payments.Single().Status));
     }
+
+    [Fact]
+    public async Task Verified_result_for_an_order_already_paid_by_another_slip_needs_review_as_already_paid()
+    {
+        var created = await CreateOrderOk();
+        var first = await Submit(created.OrderId, Slips.Image(1));   // ตรวจไม่ได้ → Verifying
+        Assert.Equal(PaymentStatus.Verifying, first.Status);
+        await using (var db = Pg.CreateDbContext())   // จำลอง: ใบแรกถูกพักไว้ตรวจมือ แล้วนักวิ่งส่งสลิปใหม่จนจ่ายผ่าน
+            await db.Payments.Where(p => p.Id == first.PaymentId).ExecuteUpdateAsync(s => s.SetProperty(p => p.Status, PaymentStatus.NeedsReview));
+        _verifier.Enqueue(FakeSlipVerifier.Ok(created.PayableAmount));
+        Assert.Equal(OrderStatus.Paid, (await Submit(created.OrderId, Slips.Image(2))).OrderStatus);
+        await using (var db = Pg.CreateDbContext())   // ใบแรกกลับมาตรวจแล้วผ่านด้วย
+            await db.Payments.Where(p => p.Id == first.PaymentId).ExecuteUpdateAsync(s => s.SetProperty(p => p.Status, PaymentStatus.Verifying));
+
+        await using var apply = Pg.CreateDbContext();
+        var r = await Service(apply, At(6)).ApplyResultAsync(first.PaymentId, FakeSlipVerifier.Ok(created.PayableAmount), default);
+
+        Assert.Equal((PaymentStatus.NeedsReview, PaymentRejectReason.AlreadyPaid), (r.Status, r.Reason));
+        var (order, payments) = await Load(created.OrderId);
+        Assert.Equal(1, payments.Count(p => p.Status == PaymentStatus.Verified));
+        Assert.Equal("B0001", order.Registrations.Single().BibNumber);
+    }
 }

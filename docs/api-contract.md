@@ -91,7 +91,7 @@ multipart ฟิลด์ `file` (.jpg .jpeg .png .webp ไม่เกิน 5 
 - `422 SLIP_REJECTED` details `{ paymentId, reason: INVALID_SLIP | AMOUNT_MISMATCH | WRONG_RECEIVER | DUPLICATE_SLIP }` — อัปโหลดใหม่ได้
 - `400 VALIDATION_ERROR` (`details.file`), `404 ORDER_NOT_FOUND`, `409 ORDER_ALREADY_PAID`, `409 ORDER_NOT_PAYABLE`, `409 PAYMENT_IN_PROGRESS`, `409 SLIP_DUPLICATE`
 
-`GET /orders/{id}` มีฟิลด์ `payment: { paymentId, status, rejectReason } | null` (ล่าสุด)
+`GET /orders/{id}` มีฟิลด์ `payment: { paymentId, status, rejectReason } | null` (`GET /orders/{id}/payment` มี `note` เพิ่ม = เหตุผลที่เจ้าหน้าที่ปฏิเสธ) (ล่าสุด)
 ออเดอร์ยอด 0 บาท (โค้ดฟรี + รับเอง) เป็น `Paid` ทันทีตอนสร้าง `payableAmount = 0`
 
 ## Admin
@@ -108,9 +108,11 @@ multipart ฟิลด์ `file` (.jpg .jpeg .png .webp ไม่เกิน 5 
 | GET | `/admin/events/{id}/orders/export` | 9 | Organizer, SuperAdmin (Excel) |
 | GET | `/admin/orders/{id}` | 9 | |
 | PATCH | `/admin/orders/{id}/tracking` | 9 | Organizer (เลขพัสดุ → ส่ง LINE) |
-| GET | `/admin/events/{id}/payments?status=NeedsReview` | 10 | Finance, SuperAdmin |
-| POST | `/admin/payments/{id}/approve` | 10 | Finance (ออกเลขบิบ + ส่ง LINE + AuditLog) |
-| POST | `/admin/payments/{id}/reject` | 10 | Finance (ต้องมีเหตุผล) |
+| GET | `/admin/events/{id}/payments?status=&page=&pageSize=` | 10 | Finance, SuperAdmin · `{ items, page, pageSize, total }` ใหม่สุดก่อน · ต้องมีสิทธิ์งานนั้น (SuperAdmin ได้ทุกงาน) |
+| GET | `/admin/payments/{id}/slip` | 10 | Finance, SuperAdmin · `{ url, expiresAt }` ลิงก์รูปสลิปอายุ 5 นาที |
+| POST | `/admin/payments/{id}/approve` | 10 | Finance · เฉพาะ `NeedsReview` → ออเดอร์ `Paid` + เลขบิบ + AuditLog · ออเดอร์หมดเวลา (`ORDER_EXPIRED`) จองโควตา/เสื้อใหม่ ถ้าเต็ม `409 CAPACITY_FULL` · ออเดอร์จ่ายแล้ว (`ALREADY_PAID`) `409 APPROVE_NOT_ALLOWED` · `409 PAYMENT_NOT_REVIEWABLE` เมื่อมีคนจัดการไปก่อน |
+| POST | `/admin/payments/{id}/reject` | 10 | Finance · `{ note }` (บังคับ ≤ 500 ตัวอักษร แสดงให้นักวิ่งที่ `payment.note`) → `Rejected` นักวิ่งอัปสลิปใหม่ได้ถ้าออเดอร์ยัง `Pending` |
+| POST | `/admin/payments/{id}/recheck` | 10 | Finance · เฉพาะ `VERIFY_TIMEOUT` → กลับเป็น `Verifying` ให้ job ตรวจใหม่ |
 | GET | `/admin/events/{id}/registrations?distance=&q=` | 11 | |
 | GET/PUT | `/admin/events/{id}/distances` | 12 | Organizer (ลดโควตาต่ำกว่าที่จองไม่ได้) |
 | GET/PUT | `/admin/events/{id}/shirt-sizes` | 12 | Organizer |

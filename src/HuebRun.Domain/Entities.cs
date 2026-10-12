@@ -232,7 +232,8 @@ public class Payment
     public int CheckAttempts { get; set; }
 
     public string? RejectReason { get; set; }          // PaymentRejectReason.*
-    public string? ReviewedBy { get; set; }            // แอดมินที่ตรวจมือ
+    public string? ReviewedBy { get; set; }            // แอดมินที่ตรวจมือ (id)
+    public string? ReviewNote { get; set; }            // เหตุผลที่แอดมินปฏิเสธ แสดงให้นักวิ่งเห็น
     public DateTime CreatedAt { get; set; }
     public DateTime? VerifiedAt { get; set; }
 }
@@ -253,4 +254,6 @@ public static class PaymentRejectReason
     public const string OrderExpired = "ORDER_EXPIRED";
     public const string DuplicateUnknown = "DUPLICATE_UNKNOWN";
     public const string VerifyTimeout = "VERIFY_TIMEOUT";
+    public const string AlreadyPaid = "ALREADY_PAID";          // ออเดอร์จ่ายแล้วด้วยสลิปอื่น (สลิปนี้ซ้ำซ้อน → ปฏิเสธ/คืนเงิน)
+    public const string AdminRejected = "ADMIN_REJECTED";
 }

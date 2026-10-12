@@ -30,7 +30,7 @@ public sealed class PaymentService(
 
         var latest = await db.Payments.AsNoTracking()
             .Where(p => p.OrderId == orderId).OrderByDescending(p => p.Id)
-            .Select(p => new PaymentSummary(p.Id, p.Status, p.RejectReason, p.CreatedAt))
+            .Select(p => new PaymentSummary(p.Id, p.Status, p.RejectReason, p.CreatedAt, p.ReviewNote))
             .FirstOrDefaultAsync(ct);
         return new PaymentInfo(order.Id, order.OrderNo, order.PayableAmount, order.Event.PromptPayAccountName,
             PromptPayPayload.Create(order.Event.PromptPayId, order.PayableAmount), order.ExpiresAt, latest);
@@ -125,20 +125,24 @@ public sealed class PaymentService(
         if (payment.Status == PaymentStatus.Verifying && (payment.CheckAttempts >= MaxAttempts || now - payment.CreatedAt > MaxVerifyAge))
             Review(payment, PaymentRejectReason.VerifyTimeout);
 
-        // ไม่ผ่าน: ปลด hold เหลือเวลาให้อัปโหลดใหม่ แต่ไม่สั้นกว่ากำหนดเดิมของออเดอร์
+        // ไม่ผ่าน: ปลด hold เหลือเวลาให้อัปโหลดใหม่
         if (payment.Status == PaymentStatus.Rejected && order.Status == OrderStatus.Pending)
-        {
-            var reservation = await db.Events.Where(e => e.Id == order.EventId).Select(e => e.ReservationMinutes).SingleAsync(ct);
-            var original = order.CreatedAt.AddMinutes(reservation);
-            var grace = now.AddMinutes(options.Value.RejectGraceMinutes);
-            if (grace < original) grace = original;
-            await db.Orders.Where(o => o.Id == order.Id && o.Status == OrderStatus.Pending)
-                .ExecuteUpdateAsync(s => s.SetProperty(o => o.ExpiresAt, grace), ct);
-        }
+            await ReleaseHoldAsync(order, now, ct);
 
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
         return Summary(payment, payment.Status == PaymentStatus.Verified ? OrderStatus.Paid : order.Status);
+    }
+
+    /// ปลด hold ของออเดอร์ที่สลิปไม่ผ่าน: เหลือเวลาให้อัปโหลดใหม่ แต่ไม่สั้นกว่ากำหนดเดิมของออเดอร์
+    public async Task ReleaseHoldAsync(Order order, DateTime now, CancellationToken ct)
+    {
+        var reservation = await db.Events.Where(e => e.Id == order.EventId).Select(e => e.ReservationMinutes).SingleAsync(ct);
+        var original = order.CreatedAt.AddMinutes(reservation);
+        var grace = now.AddMinutes(options.Value.RejectGraceMinutes);
+        if (grace < original) grace = original;
+        await db.Orders.Where(o => o.Id == order.Id && o.Status == OrderStatus.Pending)
+            .ExecuteUpdateAsync(s => s.SetProperty(o => o.ExpiresAt, grace), ct);
     }
 
     private async Task ApplyVerifiedAsync(Payment payment, Order order, SlipCheckResult.Verified v, DateTime now, CancellationToken ct)
@@ -160,7 +164,8 @@ public sealed class PaymentService(
         payment.NextCheckAt = null;
         if (order.Status != OrderStatus.Pending)
         {
-            Review(payment, PaymentRejectReason.OrderExpired);
+            // จ่ายแล้วด้วยสลิปอื่น ≠ หมดเวลา: แอดมินต้องปฏิเสธ/คืนเงินสลิปซ้ำซ้อนนี้ ห้ามอนุมัติ
+            Review(payment, order.Status == OrderStatus.Paid ? PaymentRejectReason.AlreadyPaid : PaymentRejectReason.OrderExpired);
             return;
         }
 
@@ -168,7 +173,12 @@ public sealed class PaymentService(
         payment.VerifiedAt = now;
         try
         {
-            await orders.MarkPaidAsync(order.Id, now, ct);
+            if ((await orders.MarkPaidAsync(order.Id, now, ct)).AlreadyPaid)
+            {
+                // แข่งกับสลิปอื่นที่จ่ายผ่านก่อน: ห้ามมี Payment Verified สองใบบนออเดอร์เดียว
+                payment.VerifiedAt = null;
+                Review(payment, PaymentRejectReason.AlreadyPaid);
+            }
         }
         catch (InvalidOperationException)
         {

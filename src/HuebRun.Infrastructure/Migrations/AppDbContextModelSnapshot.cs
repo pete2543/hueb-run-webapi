@@ -837,6 +837,10 @@ namespace HuebRun.Infrastructure.Migrations
                     b.Property<string>("RejectReason")
                         .HasColumnType("text");
 
+                    b.Property<string>("ReviewNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<string>("ReviewedBy")
                         .HasColumnType("text");
 

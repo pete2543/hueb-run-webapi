@@ -175,6 +175,7 @@ public class AppDbContext : IdentityDbContext<AdminUser, IdentityRole<Guid>, Gui
         b.Entity<AppSetting>().HasKey(x => x.Key);
 
         // Payment: กันสลิปซ้ำ
+        b.Entity<Payment>().Property(x => x.ReviewNote).HasMaxLength(500);
         b.Entity<Payment>().HasIndex(x => x.SlipHash).IsUnique().HasFilter("\"SlipHash\" IS NOT NULL");
         b.Entity<Payment>().HasIndex(x => x.SlipTransRef).IsUnique().HasFilter("\"SlipTransRef\" IS NOT NULL");
         b.Entity<Payment>().HasIndex(x => new { x.OrderId, x.Status });
