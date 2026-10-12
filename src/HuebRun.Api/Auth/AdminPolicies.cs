@@ -11,6 +11,7 @@ public static class AdminPolicies
     public const string Payments = "AdminPayments";      // ตรวจสลิป คืนเงิน
     public const string CheckIn = "AdminCheckIn";        // เช็กอิน
     public const string EventSettings = "AdminEventSettings";   // โควตา ตั้งค่างาน โค้ดส่วนลด ประกาศ
+    public const string EventCreate = "AdminEventCreate";   // สร้างงานใหม่
     public const string Users = "AdminUsers";            // ผู้ใช้ audit
 
     private static readonly Dictionary<string, string[]> Roles = new()
@@ -20,6 +21,7 @@ public static class AdminPolicies
         [Payments] = [AdminRoles.SuperAdmin, AdminRoles.Finance],
         [CheckIn] = [AdminRoles.SuperAdmin, AdminRoles.Organizer, AdminRoles.Staff],
         [EventSettings] = [AdminRoles.SuperAdmin, AdminRoles.Organizer],
+        [EventCreate] = [AdminRoles.SuperAdmin],
         [Users] = [AdminRoles.SuperAdmin],
     };
 

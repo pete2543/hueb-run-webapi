@@ -48,4 +48,25 @@ public static class AdminErrors
 
     public static AppException OrderNotFound(Guid id) =>
         new(404, "ORDER_NOT_FOUND", "ไม่พบใบสมัคร", new { id });
+
+    public static AppException EventNotFound(int id) =>
+        new(404, "EVENT_NOT_FOUND", "ไม่พบงานนี้", new { id });
+
+    public static AppException SlugTaken(string slug) =>
+        new(409, "SLUG_TAKEN", "slug นี้ถูกใช้แล้ว", new { slug });
+
+    public static AppException Duplicate(string field) =>
+        new(409, "DUPLICATE", "ชื่อ/รหัสซ้ำกับรายการที่มีอยู่", new { field });
+
+    public static AppException InUse(string kind, string name) =>
+        new(409, "IN_USE", "มีผู้สมัคร/ออเดอร์อ้างถึงอยู่ ลบไม่ได้", new { kind, name });
+
+    public static AppException QuotaBelowReserved(string name, int newLimit, int reserved) =>
+        new(409, "QUOTA_BELOW_RESERVED", "ลดต่ำกว่าจำนวนที่จองไว้แล้วไม่ได้", new { name, newLimit, reserved });
+
+    public static AppException BibPrefixLocked(string name) =>
+        new(409, "BIB_PREFIX_LOCKED", "ออกเลขบิบไปแล้ว เปลี่ยนตัวอักษรนำหน้าบิบไม่ได้", new { name });
+
+    public static AppException NotReadyToPublish(IEnumerable<string> missing) =>
+        new(409, "NOT_READY_TO_PUBLISH", "ตั้งค่างานยังไม่ครบ ต้องมีระยะ ไซซ์เสื้อ และวิธีรับของที่เปิดใช้อย่างน้อยอย่างละ 1", new { missing });
 }

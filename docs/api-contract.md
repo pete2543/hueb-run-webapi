@@ -114,9 +114,12 @@ multipart ฟิลด์ `file` (.jpg .jpeg .png .webp ไม่เกิน 5 
 | POST | `/admin/payments/{id}/reject` | 10 | Finance · `{ note }` (บังคับ ≤ 500 ตัวอักษร แสดงให้นักวิ่งที่ `payment.note`) → `Rejected` นักวิ่งอัปสลิปใหม่ได้ถ้าออเดอร์ยัง `Pending` |
 | POST | `/admin/payments/{id}/recheck` | 10 | Finance · เฉพาะ `VERIFY_TIMEOUT` → กลับเป็น `Verifying` ให้ job ตรวจใหม่ |
 | GET | `/admin/events/{id}/registrations?distance=&q=` | 11 | |
-| GET/PUT | `/admin/events/{id}/distances` | 12 | Organizer (ลดโควตาต่ำกว่าที่จองไม่ได้) |
-| GET/PUT | `/admin/events/{id}/shirt-sizes` | 12 | Organizer |
-| PUT | `/admin/events/{id}` | 12 | Organizer (เวลาเปิด/ปิด, PromptPay ต่อ Event) |
+| POST | `/admin/events` | – | SuperAdmin · สร้างงาน (ยังไม่เผยแพร่) `{ name, slug, year, eventDate, registrationOpensAt, registrationClosesAt, promptPayId, promptPayAccountName, reservationMinutes? }` เวลาต้องมีเขตเวลา (เช่น `Z`) · `409 SLUG_TAKEN` |
+| GET | `/admin/events/{id}` | 12 | Organizer, SuperAdmin |
+| GET/PUT | `/admin/events/{id}/distances` | 12 | Organizer · PUT รับ array ทั้งรายการ: มี `id` = แก้, ไม่มี = เพิ่ม, ที่หายไป = ลบ (ลบไม่ได้ถ้ามีผู้สมัคร `409 IN_USE`) · ลดโควตาต่ำกว่าที่จอง `409 QUOTA_BELOW_RESERVED` · เปลี่ยน `bibPrefix` หลังออกบิบ `409 BIB_PREFIX_LOCKED` · ราคาใหม่มีผลกับออเดอร์ใหม่เท่านั้น |
+| GET/PUT | `/admin/events/{id}/shirt-sizes` | 12 | Organizer · กติกาเดียวกับ distances (`stock` ต่ำกว่าที่จอง = `409 QUOTA_BELOW_RESERVED`) |
+| GET/PUT | `/admin/events/{id}/shipping-options` | 12 | Organizer · ลบตัวที่มีออเดอร์ใช้ไม่ได้ (`409 IN_USE`) ให้ปิดด้วย `isActive=false` · งานที่เผยแพร่แล้วต้องเหลือตัวที่เปิดอย่างน้อย 1 |
+| PUT | `/admin/events/{id}` | 12 | Organizer (เวลาเปิด/ปิด, PromptPay ต่อ Event) · คืน `{ event, warnings }` — เปลี่ยน PromptPay จะมี warning ให้แก้บัญชีใน SlipOK LIFF · เผยแพร่ (`isPublished=true`) ต้องมีระยะ ไซซ์ และวิธีรับของอย่างละ 1 (`409 NOT_READY_TO_PUBLISH`) |
 | GET/POST/PUT | `/admin/events/{id}/promos` | 13 | Organizer |
 | POST | `/admin/checkin/scan` | 14 | Staff, Organizer (`{ "token": "..." }`) |
 | POST | `/admin/checkin/{registrationId}/confirm` | 14 | Staff, Organizer |
