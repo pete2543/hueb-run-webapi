@@ -120,7 +120,7 @@ multipart ฟิลด์ `file` (.jpg .jpeg .png .webp ไม่เกิน 5 
 | GET/PUT | `/admin/events/{id}/shirt-sizes` | 12 | Organizer · กติกาเดียวกับ distances (`stock` ต่ำกว่าที่จอง = `409 QUOTA_BELOW_RESERVED`) |
 | GET/PUT | `/admin/events/{id}/shipping-options` | 12 | Organizer · ลบตัวที่มีออเดอร์ใช้ไม่ได้ (`409 IN_USE`) ให้ปิดด้วย `isActive=false` · งานที่เผยแพร่แล้วต้องเหลือตัวที่เปิดอย่างน้อย 1 |
 | PUT | `/admin/events/{id}` | 12 | Organizer (เวลาเปิด/ปิด, PromptPay ต่อ Event) · คืน `{ event, warnings }` — เปลี่ยน PromptPay จะมี warning ให้แก้บัญชีใน SlipOK LIFF · เผยแพร่ (`isPublished=true`) ต้องมีระยะ ไซซ์ และวิธีรับของอย่างละ 1 (`409 NOT_READY_TO_PUBLISH`) |
-| GET/POST/PUT | `/admin/events/{id}/promos` | 13 | Organizer |
+| GET/POST/PUT | `/admin/events/{id}/promos[/{promoId}]` | 13 | Organizer, SuperAdmin · ไม่มีลบ ปิดด้วย `isActive=false` · โค้ดเก็บเป็นตัวพิมพ์ใหญ่ ไม่ซ้ำแบบไม่สนตัวพิมพ์ (`409 PROMO_CODE_TAKEN`) · แก้ `code` ไม่ได้ · ลด `maxUses` ต่ำกว่า `usedCount` `409 MAX_USES_BELOW_USED` |
 | POST | `/admin/checkin/scan` | 14 | Staff, Organizer (`{ "token": "..." }`) |
 | POST | `/admin/checkin/{registrationId}/confirm` | 14 | Staff, Organizer |
 | POST | `/admin/checkin/{registrationId}/undo` | 14 | Organizer |

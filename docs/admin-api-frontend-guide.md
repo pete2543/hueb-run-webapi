@@ -2,8 +2,8 @@
 
 อัปเดต: 2026-10-12 · branch `feat/admin-auth` · สัญญาแบบย่ออยู่ที่ `docs/api-contract.md` (หัวข้อ Admin) ไฟล์นี้ลงรายละเอียดรูปแบบ request/response ที่ทำเสร็จแล้ว
 
-ทำแล้ว: auth, ผู้ใช้, ตรวจสลิป, ออเดอร์, ตั้งค่างาน, แดชบอร์ด
-ยังไม่มี (อย่าเรียก): โค้ดส่วนลด, นักวิ่ง/export, เลขพัสดุ, เช็กอิน, คืนเงิน, audit, ประกาศ
+ทำแล้ว: auth, ผู้ใช้, ตรวจสลิป, ออเดอร์, ตั้งค่างาน, โค้ดส่วนลด, แดชบอร์ด
+ยังไม่มี (อย่าเรียก): นักวิ่ง/export, เลขพัสดุ, เช็กอิน, คืนเงิน, audit, ประกาศ
 
 ## 1. กติกากลาง
 
@@ -149,6 +149,13 @@
 - `409 DUPLICATE` — ชื่อ/ไซซ์/ตัวอักษรบิบซ้ำ · `400` — ค่าไม่ถูกต้อง · early bird ต้องใส่ราคาและวันตัดรอบพร้อมกัน และราคา ≤ ราคาปกติ · `bibPrefix` A–Z 0–9 ยาว 1–5 (ระบบแปลงเป็นตัวพิมพ์ใหญ่)
 - ราคาใหม่มีผลกับออเดอร์ใหม่เท่านั้น (บอกแอดมินในฟอร์ม)
 - งานที่เผยแพร่แล้วปิดวิธีรับของจนไม่เหลือที่เปิดอยู่ → `409 NOT_READY_TO_PUBLISH`
+
+### โค้ดส่วนลด `…/events/{eventId}/promos` (SuperAdmin, Organizer)
+- `GET` → array `{ id, code, type: "Percent"|"Fixed", value, minOrderAmount, startsAt, endsAt, maxUses, usedCount, isActive }`
+- `POST` body `{ code, type, value, minOrderAmount?, startsAt?, endsAt?, maxUses?, isActive? }` → `201` · `code` A-Z 0-9 `_` `-` ยาว 3–30 (ระบบแปลงเป็นตัวพิมพ์ใหญ่) · `Percent` ค่า 0–100, `Fixed` > 0 · `maxUses` ว่าง = ไม่จำกัด · เวลาต้องมีเขตเวลา · `409 PROMO_CODE_TAKEN`
+- `PUT /promos/{promoId}` ส่งครบทุกฟิลด์ (ค่า `code` ที่ส่งมาถูกเมินเพราะแก้ไม่ได้ → ล็อกช่องนี้) → โค้ดที่แก้แล้ว · ไม่มีลบ ให้ปิดด้วย `isActive: false`
+- `409 MAX_USES_BELOW_USED` — ตั้ง `maxUses` ต่ำกว่า `usedCount` (ใช้ `usedCount` เป็นค่าต่ำสุดในฟอร์ม) · `404 PROMO_NOT_FOUND`
+- แก้ไขมีผลกับออเดอร์ใหม่เท่านั้น
 
 ## 7. แดชบอร์ด `GET /admin/events/{eventId}/dashboard` (SuperAdmin, Organizer, Finance)
 ```json

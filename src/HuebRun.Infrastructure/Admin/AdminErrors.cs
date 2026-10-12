@@ -69,4 +69,13 @@ public static class AdminErrors
 
     public static AppException NotReadyToPublish(IEnumerable<string> missing) =>
         new(409, "NOT_READY_TO_PUBLISH", "ตั้งค่างานยังไม่ครบ ต้องมีระยะ ไซซ์เสื้อ และวิธีรับของที่เปิดใช้อย่างน้อยอย่างละ 1", new { missing });
+
+    public static AppException PromoNotFound(int id) =>
+        new(404, "PROMO_NOT_FOUND", "ไม่พบโค้ดส่วนลด", new { id });
+
+    public static AppException PromoCodeTaken(string code) =>
+        new(409, "PROMO_CODE_TAKEN", "โค้ดนี้ถูกใช้แล้วในงานนี้", new { code });
+
+    public static AppException MaxUsesBelowUsed(int maxUses, int used) =>
+        new(409, "MAX_USES_BELOW_USED", "ลดจำนวนครั้งที่ใช้ได้ต่ำกว่าที่ถูกใช้ไปแล้วไม่ได้", new { maxUses, used });
 }
