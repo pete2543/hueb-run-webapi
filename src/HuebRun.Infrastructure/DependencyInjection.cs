@@ -18,10 +18,22 @@ public static class DependencyInjection
         services.AddScoped<OrderPaymentService>();
         services.AddScoped<OrderExpiryService>();
 
+        services.AddOptions<PaymentOptions>().Bind(config.GetSection("Payments")).ValidateDataAnnotations().ValidateOnStart();
+        services.AddScoped<PaymentService>();
+        services.AddScoped<PaymentRecheckService>();
+
+        if (config.GetValue<string>("Payments:Mode") == PaymentOptions.FakeMode)
+        {
+            // โหมดจำลอง: ไม่ต้องใช้ key; Program.cs กันไม่ให้เปิดนอก Development
+            services.AddOptions<MinioOptions>().Bind(config.GetSection("Minio"));
+            services.AddSingleton<ISlipVerifier, DevSlipVerifier>();
+            services.AddSingleton<ISlipStorage>(new LocalSlipStorage(Path.Combine(AppContext.BaseDirectory, "App_Data", "slips")));
+            return services;
+        }
+
         // ขาด secret แล้วแอปไม่ขึ้น ดีกว่าไปพังตอนนักวิ่งอัปสลิป
         services.AddOptions<SlipOkOptions>().Bind(config.GetSection("SlipOk")).ValidateDataAnnotations().ValidateOnStart();
         services.AddOptions<MinioOptions>().Bind(config.GetSection("Minio")).ValidateDataAnnotations().ValidateOnStart();
-        services.AddOptions<PaymentOptions>().Bind(config.GetSection("Payments")).ValidateDataAnnotations().ValidateOnStart();
 
         services.AddHttpClient<ISlipVerifier, SlipOkVerifier>((sp, http) =>
         {
@@ -35,8 +47,6 @@ public static class DependencyInjection
             return new MinioClient().WithEndpoint(o.Endpoint).WithCredentials(o.AccessKey, o.SecretKey).WithSSL(o.UseSsl).Build();
         });
         services.AddSingleton<ISlipStorage, MinioSlipStorage>();
-        services.AddScoped<PaymentService>();
-        services.AddScoped<PaymentRecheckService>();
         return services;
     }
 }

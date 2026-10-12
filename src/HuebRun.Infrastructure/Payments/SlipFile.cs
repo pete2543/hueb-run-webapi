@@ -19,7 +19,8 @@ public static class SlipFile
         await content.CopyToAsync(buffer, ct);
         if (buffer.Length > options.MaxFileSizeBytes)
             throw PaymentErrors.InvalidFile($"ไฟล์ต้องมีขนาดไม่เกิน {options.MaxFileSizeBytes / 1024 / 1024} MB");
-        return FromBytes(buffer.ToArray()) ?? throw PaymentErrors.InvalidFile("ไฟล์ไม่ใช่รูปภาพที่รองรับ");
+        var image = FromBytes(buffer.ToArray()) ?? throw PaymentErrors.InvalidFile("ไฟล์ไม่ใช่รูปภาพที่รองรับ");
+        return image with { OriginalName = Path.GetFileName(fileName) };
     }
 
     /// ชนิดจาก magic bytes; null = ไม่ใช่ JPEG/PNG/WebP
