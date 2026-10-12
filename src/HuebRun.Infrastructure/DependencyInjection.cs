@@ -76,5 +76,6 @@ public static class DependencyInjection
         services.AddScoped<AdminAuthService>();
         services.AddScoped<AdminUserService>();
         services.AddScoped<AdminPaymentService>();
+        services.AddScoped<AdminOrderService>();
     }
 }

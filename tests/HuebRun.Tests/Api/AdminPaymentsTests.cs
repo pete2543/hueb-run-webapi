@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using HuebRun.Domain;
@@ -7,9 +6,7 @@ using HuebRun.Infrastructure.Admin;
 using HuebRun.Infrastructure.Orders;
 using HuebRun.Infrastructure.Payments;
 using HuebRun.Tests.Infrastructure;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
 
 namespace HuebRun.Tests.Api;
@@ -17,29 +14,6 @@ namespace HuebRun.Tests.Api;
 [Collection("db")]
 public sealed class AdminPaymentsTests(PostgresFixture pg) : OrderTestBase(pg)
 {
-    private const string Password = "correct-horse-battery";
-
-    private async Task<HttpClient> AdminClient(string role, params int[] eventIds)
-    {
-        using (var scope = Factory.Services.CreateScope())
-        {
-            var users = scope.ServiceProvider.GetRequiredService<UserManager<AdminUser>>();
-            var email = $"{role.ToLowerInvariant()}-{Guid.NewGuid():N}@example.com";
-            var user = new AdminUser
-            {
-                Id = Guid.NewGuid(), UserName = email, Email = email, DisplayName = role, IsActive = true, LockoutEnabled = true,
-                CreatedAt = DateTime.UtcNow, EventAccesses = [.. eventIds.Select(e => new AdminEventAccess { EventId = e })],
-            };
-            Assert.True((await users.CreateAsync(user, Password)).Succeeded);
-            Assert.True((await users.AddToRoleAsync(user, role)).Succeeded);
-            var login = await Factory.CreateClient().PostAsJsonAsync("/api/v1/admin/auth/login", new { email, password = Password });
-            var token = (await login.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("token").GetString();
-            var client = Factory.CreateClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            return client;
-        }
-    }
-
     private Task<HttpClient> Finance() => AdminClient(AdminRoles.Finance, Ev.Id);
 
     /// สร้าง Payment รอตรวจ (มีรูปสลิปใน storage) บนออเดอร์ที่ระบุ

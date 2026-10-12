@@ -45,4 +45,7 @@ public static class AdminErrors
 
     public static AppException NoSlip(int id) =>
         new(404, "SLIP_NOT_FOUND", "รายการนี้ไม่มีรูปสลิป", new { id });
+
+    public static AppException OrderNotFound(Guid id) =>
+        new(404, "ORDER_NOT_FOUND", "ไม่พบใบสมัคร", new { id });
 }

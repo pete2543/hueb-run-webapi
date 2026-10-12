@@ -104,9 +104,9 @@ multipart ฟิลด์ `file` (.jpg .jpeg .png .webp ไม่เกิน 5 
 | GET | `/admin/auth/me` | – | ทุกบทบาท |
 | POST | `/admin/auth/change-password` | – | ทุกบทบาท · `{ currentPassword, newPassword }` → `204` token เดิมใช้ไม่ได้ |
 | GET | `/admin/events/{id}/dashboard` | 8 | Organizer, Finance, SuperAdmin |
-| GET | `/admin/events/{id}/orders?status=&q=&page=` | 9 | Organizer, Finance, SuperAdmin |
+| GET | `/admin/events/{id}/orders?status=&q=&page=&pageSize=` | 9 | Organizer, Finance, SuperAdmin · `{ items, page, pageSize, total }` ใหม่สุดก่อน · `status` Pending/Paid/Expired/Cancelled/Refunded (Pending ที่เลยเวลานับเป็น Expired) · `q` ค้นเลขออเดอร์/ชื่อผู้ติดต่อ/เบอร์/ชื่อนักวิ่ง/เลขบิบ |
 | GET | `/admin/events/{id}/orders/export` | 9 | Organizer, SuperAdmin (Excel) |
-| GET | `/admin/orders/{id}` | 9 | |
+| GET | `/admin/orders/{id}` | 9 | Organizer, Finance, SuperAdmin · ออเดอร์ + นักวิ่ง + Payment ทุกใบ · Finance ไม่เห็นข้อมูลอ่อนไหว (อีเมล, ที่อยู่/เบอร์จัดส่ง, วันเกิด, เลขบัตร, ผู้ติดต่อฉุกเฉิน, MedicalNote → `null`) |
 | PATCH | `/admin/orders/{id}/tracking` | 9 | Organizer (เลขพัสดุ → ส่ง LINE) |
 | GET | `/admin/events/{id}/payments?status=&page=&pageSize=` | 10 | Finance, SuperAdmin · `{ items, page, pageSize, total }` ใหม่สุดก่อน · ต้องมีสิทธิ์งานนั้น (SuperAdmin ได้ทุกงาน) |
 | GET | `/admin/payments/{id}/slip` | 10 | Finance, SuperAdmin · `{ url, expiresAt }` ลิงก์รูปสลิปอายุ 5 นาที |
