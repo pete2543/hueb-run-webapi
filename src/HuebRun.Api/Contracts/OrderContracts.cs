@@ -6,7 +6,10 @@ public sealed record OrderResponse(
     Guid OrderId, string OrderNo, OrderStatus Status,
     decimal SubTotal, decimal DiscountAmount, decimal ShippingFee, decimal Total, decimal PayableAmount,
     DateTime CreatedAt, DateTime ExpiresAt, DateTime? PaidAt, string? PromoCode,
-    OrderContactResponse Contact, OrderShippingResponse Shipping, IReadOnlyList<OrderRunnerResponse> Runners);
+    OrderContactResponse Contact, OrderShippingResponse Shipping, IReadOnlyList<OrderRunnerResponse> Runners,
+    OrderPaymentResponse? Payment);
+
+public sealed record OrderPaymentResponse(int PaymentId, PaymentStatus Status, string? RejectReason);
 
 public sealed record OrderContactResponse(string Name, string Phone, string? Email);
 

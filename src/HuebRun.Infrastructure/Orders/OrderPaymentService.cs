@@ -7,12 +7,15 @@ namespace HuebRun.Infrastructure.Orders;
 
 public sealed record MarkPaidResult(bool AlreadyPaid);
 
-/// เปลี่ยนออเดอร์เป็น Paid และออกเลขบิบ — ขั้นชำระเงิน (สลิป/gateway) เรียกใช้
+/// เปลี่ยนออเดอร์เป็น Paid และออกเลขบิบ — ขั้นชำระเงินเรียกใช้ (ร่วม transaction ที่เปิดอยู่ได้)
 public sealed class OrderPaymentService(AppDbContext db)
 {
     public async Task<MarkPaidResult> MarkPaidAsync(Guid orderId, DateTime paidAtUtc, CancellationToken ct = default)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        // ใช้ transaction ของคนเรียกถ้ามี (เช่น อัปเดต Payment พร้อมกัน) ไม่งั้นเปิดเอง
+        var outer = db.Database.CurrentTransaction;
+        await using var owned = outer is null ? await db.Database.BeginTransactionAsync(ct) : null;
+        var tx = outer ?? owned!;
 
         // update แบบมีเงื่อนไข: แข่งกับ job หมดเวลาได้ฝั่งเดียว
         var updated = await db.Orders
@@ -41,7 +44,7 @@ public sealed class OrderPaymentService(AppDbContext db)
         }
 
         await db.SaveChangesAsync(ct);
-        await tx.CommitAsync(ct);
+        if (owned is not null) await owned.CommitAsync(ct);
         return new MarkPaidResult(AlreadyPaid: false);
     }
 

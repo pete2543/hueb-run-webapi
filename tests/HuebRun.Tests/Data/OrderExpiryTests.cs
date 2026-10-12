@@ -125,4 +125,18 @@ public sealed class OrderExpiryTests(PostgresFixture pg) : OrderTestBase(pg)
         await using (var db = Pg.CreateDbContext())
             await db.Orders.Where(o => o.Id == broken.OrderId).ExecuteUpdateAsync(s => s.SetProperty(o => o.Status, OrderStatus.Cancelled));
     }
+
+    [Fact]
+    public async Task Order_whose_expiry_was_extended_after_selection_is_not_expired()
+    {
+        // ออเดอร์ถูกยืดเวลา (hold) ไปแล้ว → job ที่รันหลังเวลาเดิมต้องไม่แตะ; การแข่งจริงทดสอบใน PaymentServiceTests
+        var created = await CreateOrderOk();
+        await using (var db = Pg.CreateDbContext())
+            await db.Orders.Where(o => o.Id == created.OrderId)
+                .ExecuteUpdateAsync(s => s.SetProperty(o => o.ExpiresAt, TestData.Utc(2026, 11, 15).AddMinutes(120)));
+
+        await RunExpiry(AfterExpiry);
+
+        Assert.Equal(OrderStatus.Pending, (await Snapshot(created.OrderId)).Status);
+    }
 }

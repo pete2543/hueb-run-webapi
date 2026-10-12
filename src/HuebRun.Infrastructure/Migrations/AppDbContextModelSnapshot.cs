@@ -806,6 +806,9 @@ namespace HuebRun.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("CheckAttempts")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -814,6 +817,9 @@ namespace HuebRun.Infrastructure.Migrations
 
                     b.Property<string>("ExternalRef")
                         .HasColumnType("text");
+
+                    b.Property<DateTime?>("NextCheckAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uuid");
@@ -837,7 +843,7 @@ namespace HuebRun.Infrastructure.Migrations
                     b.Property<string>("SlipHash")
                         .HasColumnType("text");
 
-                    b.Property<string>("SlipImageUrl")
+                    b.Property<string>("SlipObjectKey")
                         .HasColumnType("text");
 
                     b.Property<string>("SlipTransRef")
@@ -848,10 +854,16 @@ namespace HuebRun.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<DateTime?>("TransferredAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime?>("VerifiedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("NextCheckAt")
+                        .HasFilter("\"Status\" = 'Verifying'");
 
                     b.HasIndex("SlipHash")
                         .IsUnique()
@@ -862,6 +874,10 @@ namespace HuebRun.Infrastructure.Migrations
                         .HasFilter("\"SlipTransRef\" IS NOT NULL");
 
                     b.HasIndex("OrderId", "Status");
+
+                    b.HasIndex(new[] { "OrderId" }, "IX_Payments_OrderId_Verifying")
+                        .IsUnique()
+                        .HasFilter("\"Status\" = 'Verifying'");
 
                     b.ToTable("Payments");
                 });

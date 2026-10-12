@@ -16,6 +16,10 @@ public sealed class OrdersController(AppDbContext db, TimeProvider time) : Contr
     {
         var o = await LoadAsync(orderId, ct);
         var isPost = o.ShippingOption.Type == ShippingType.Post;
+        var payment = await db.Payments.AsNoTracking()
+            .Where(p => p.OrderId == orderId).OrderByDescending(p => p.Id)
+            .Select(p => new OrderPaymentResponse(p.Id, p.Status, p.RejectReason))
+            .FirstOrDefaultAsync(ct);
         return new OrderResponse(
             o.Id, o.OrderNo, o.GetEffectiveStatus(time.GetUtcNow().UtcDateTime),
             o.SubTotal, o.DiscountAmount, o.ShippingFee, o.Total, o.PayableAmount,
@@ -31,7 +35,7 @@ public sealed class OrdersController(AppDbContext db, TimeProvider time) : Contr
                 r.Id, r.TitleId, r.FirstName, r.LastName,
                 new IdName(r.EventDistance.Id, r.EventDistance.Name),
                 new ShirtSizeRef(r.EventShirtSize.Id, r.EventShirtSize.Size),
-                r.PricePaid, r.BibNumber)).ToList());
+                r.PricePaid, r.BibNumber)).ToList(), payment);
     }
 
     [HttpGet("tickets")]

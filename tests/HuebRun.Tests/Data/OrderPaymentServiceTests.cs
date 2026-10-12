@@ -74,4 +74,22 @@ public sealed class OrderPaymentServiceTests(PostgresFixture pg) : OrderTestBase
     [Fact]
     public async Task Unknown_order_cannot_be_marked_paid() =>
         await Assert.ThrowsAsync<InvalidOperationException>(() => MarkPaid(Guid.NewGuid()));
+
+    [Fact]
+    public async Task Joins_an_outer_transaction_and_rolls_back_with_it()
+    {
+        var created = await CreateOrderOk();
+        await using (var db = Pg.CreateDbContext())
+        {
+            await using var tx = await db.Database.BeginTransactionAsync();
+            await new OrderPaymentService(db).MarkPaidAsync(created.OrderId, PaidAt);
+            Assert.Same(tx, db.Database.CurrentTransaction);   // ไม่ได้ commit/ปิด transaction ของคนเรียก
+            await tx.RollbackAsync();
+        }
+
+        Assert.Equal([null], await Bibs(created.OrderId));
+        await using var check = Pg.CreateDbContext();
+        Assert.Equal(OrderStatus.Pending, (await check.Orders.SingleAsync(o => o.Id == created.OrderId)).Status);
+        Assert.Equal(0, (await check.EventDistances.SingleAsync(d => d.Id == FiveK.Id)).LastBibNumber);
+    }
 }

@@ -28,7 +28,7 @@ public sealed class OrderExpiryService(AppDbContext db, TimeProvider time, ILogg
             {
                 try
                 {
-                    if (await ExpireAsync(orderId, ct)) expired++;
+                    if (await ExpireAsync(orderId, now, ct)) expired++;
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
@@ -40,13 +40,13 @@ public sealed class OrderExpiryService(AppDbContext db, TimeProvider time, ILogg
         }
     }
 
-    private async Task<bool> ExpireAsync(Guid orderId, CancellationToken ct)
+    private async Task<bool> ExpireAsync(Guid orderId, DateTime now, CancellationToken ct)
     {
         await using var tx = await db.Database.BeginTransactionAsync(ct);
 
-        // update แบบมีเงื่อนไข: ถ้าเพิ่งถูกจ่ายหรือถูก job อีกตัวทำไปแล้ว จะไม่คืนซ้ำ
+        // update แบบมีเงื่อนไข: ถ้าเพิ่งถูกจ่าย, ถูก job อีกตัวทำไปแล้ว หรือถูกยืดเวลา (รอตรวจสลิป) จะไม่คืนซ้ำ
         var updated = await db.Orders
-            .Where(o => o.Id == orderId && o.Status == OrderStatus.Pending)
+            .Where(o => o.Id == orderId && o.Status == OrderStatus.Pending && o.ExpiresAt <= now)
             .ExecuteUpdateAsync(s => s.SetProperty(o => o.Status, OrderStatus.Expired), ct);
         if (updated == 0) return false;
 
