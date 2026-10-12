@@ -71,6 +71,7 @@ public class Refund
     public Guid? RequestedById { get; set; }
     public Guid? ApprovedById { get; set; }
     public string? ExternalRef { get; set; }          // เลขอ้างอิงการโอนคืน / refund id ของ gateway
+    public string? Note { get; set; }                 // เหตุผลที่ปฏิเสธ / หมายเหตุตอนโอนคืน
     public DateTime CreatedAt { get; set; }
     public DateTime? ProcessedAt { get; set; }
 }

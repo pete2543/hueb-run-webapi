@@ -976,7 +976,12 @@ namespace HuebRun.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("ExternalRef")
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uuid");
@@ -1005,9 +1010,11 @@ namespace HuebRun.Infrastructure.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.HasIndex("PaymentId");
-
                     b.HasIndex("RequestedById");
+
+                    b.HasIndex(new[] { "PaymentId" }, "IX_Refunds_PaymentId_Active")
+                        .IsUnique()
+                        .HasFilter("\"PaymentId\" IS NOT NULL AND \"Status\" <> 'Rejected'");
 
                     b.ToTable("Refunds");
                 });

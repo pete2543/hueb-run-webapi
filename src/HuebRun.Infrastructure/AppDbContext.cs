@@ -150,6 +150,11 @@ public class AppDbContext : IdentityDbContext<AdminUser, IdentityRole<Guid>, Gui
 
         b.Entity<Refund>().Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
         b.Entity<Refund>().HasIndex(x => x.OrderId);
+        b.Entity<Refund>().Property(x => x.Note).HasMaxLength(500);
+        b.Entity<Refund>().Property(x => x.ExternalRef).HasMaxLength(100);
+        // 1 Payment คืนเงินได้ครั้งเดียว (ที่ยังไม่ถูกปฏิเสธ) กันขอ/อนุมัติคืนซ้ำ
+        b.Entity<Refund>().HasIndex(x => x.PaymentId, "IX_Refunds_PaymentId_Active").IsUnique()
+            .HasFilter("\"PaymentId\" IS NOT NULL AND \"Status\" <> 'Rejected'");
 
         // ---- LINE / แจ้งเตือน ----
         b.Entity<LineAccount>().HasIndex(x => x.LineUserId).IsUnique();
