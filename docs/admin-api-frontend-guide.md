@@ -2,8 +2,8 @@
 
 อัปเดต: 2026-10-12 · branch `feat/admin-auth` · สัญญาแบบย่ออยู่ที่ `docs/api-contract.md` (หัวข้อ Admin) ไฟล์นี้ลงรายละเอียดรูปแบบ request/response ที่ทำเสร็จแล้ว
 
-ทำแล้ว: auth, ผู้ใช้, ตรวจสลิป, ออเดอร์, ตั้งค่างาน, โค้ดส่วนลด, แดชบอร์ด
-ยังไม่มี (อย่าเรียก): นักวิ่ง/export, เลขพัสดุ, เช็กอิน, คืนเงิน, audit, ประกาศ
+ทำแล้ว: auth, ผู้ใช้, ตรวจสลิป, ออเดอร์, ตั้งค่างาน, โค้ดส่วนลด, แดชบอร์ด, นักวิ่ง/export, เลขพัสดุ, เช็กอิน
+ยังไม่มี (อย่าเรียก): คืนเงิน, audit, ประกาศ
 
 ## 1. กติกากลาง
 
@@ -22,7 +22,9 @@
 |---|:-:|:-:|:-:|:-:|
 | แดชบอร์ด, ออเดอร์ | ✓ | ✓ | ✓ | |
 | ตรวจสลิป | ✓ | | ✓ | |
-| ตั้งค่างาน (อ่าน/แก้) | ✓ | ✓ | | |
+| ตั้งค่างาน (อ่าน/แก้), export, เลขพัสดุ, ยกเลิกเช็กอิน | ✓ | ✓ | | |
+| รายชื่อนักวิ่ง | ✓ | ✓ | ✓ | |
+| เช็กอิน (สแกน/ยืนยัน/รายการ) | ✓ | ✓ | | ✓ |
 | สร้างงานใหม่ | ✓ | | | |
 | ผู้ใช้ | ✓ | | | |
 | `auth/me`, `auth/change-password` | ✓ | ✓ | ✓ | ✓ |
@@ -170,6 +172,23 @@
 - `payments.needsReview` ใช้ทำป้าย/ลิงก์ไปหน้าตรวจสลิป
 - `revenue` นับจากยอดโอนจริง (`payableAmount` รวมเศษสตางค์) · Pending ที่เลยเวลานับเป็น expired
 - `reserved` = จ่ายแล้ว + กำลังรอจ่าย (ที่ยังไม่หมดเวลา) ตามตัวนับโควตา
+
+## 7.1 นักวิ่ง / export / เลขพัสดุ
+
+- `GET /admin/events/{eventId}/registrations?distance=<distanceId>&q=&page=&pageSize=` (SuperAdmin, Organizer, Finance) — เฉพาะนักวิ่งที่**จ่ายแล้ว** เรียงตามนามสกุล · `q` ค้นชื่อ/เลขบิบ(ตรงตัว)/เลขออเดอร์/ทีม/เบอร์
+  - item: `registrationId, orderId, orderNo, firstName, lastName, distance, shirtSize, bibNumber, teamName, checkedInAt` + กลุ่มอ่อนไหว `gender, birthDate, phone, email, emergencyContactName, emergencyContactPhone, medicalNote` (**Finance ได้ `null`**)
+- `GET /admin/events/{eventId}/orders/export` (SuperAdmin, Organizer) — ดาวน์โหลด `.xlsx` (เรียก server-to-server แล้ว stream ต่อให้เบราว์เซอร์; อย่าเก็บไฟล์) ทุกครั้งถูกบันทึก audit
+- `PATCH /admin/orders/{id}/tracking` `{ trackingNo }` (SuperAdmin, Organizer) → `{ trackingNo }` · ส่งค่าว่างเพื่อล้าง · เฉพาะออเดอร์ที่จ่ายแล้วและเลือก `Post` ไม่งั้น `409 TRACKING_NOT_ALLOWED` (ซ่อนช่องนี้ถ้าไม่ใช่) · ยังไม่ส่ง LINE (รอระบบแจ้งเตือน)
+
+## 7.2 เช็กอิน (SuperAdmin, Organizer, Staff)
+
+หน้างานเห็นแค่ `CheckInRunner` = `{ registrationId, orderNo, firstName, lastName, distance, shirtSize, bibNumber, teamName, eligible, checkedInAt, checkedInBy }` (ไม่มีข้อมูลสุขภาพ/ติดต่อ แม้เป็น Organizer) — `checkedInBy` = ชื่อผู้เช็กอิน
+- `POST /admin/checkin/scan` `{ token }` → `CheckInRunner` (ไม่เปลี่ยนอะไร) · `token` คือค่าใน QR บนตั๋ว (`checkInToken`) · `404 CHECKIN_TOKEN_NOT_FOUND`
+  - `eligible=false` = ยังไม่จ่าย/ถูกยกเลิก/ยังไม่มีบิบ → ปิดปุ่มยืนยัน · `checkedInAt != null` = เช็กอินไปแล้ว → แสดงเวลา/คนที่เช็กอิน
+- `POST /admin/checkin/{registrationId}/confirm` `{ station?, note? }` → `{ runner, alreadyCheckedIn }` · **เช็กอินซ้ำไม่ error** ได้ `alreadyCheckedIn: true` พร้อมเวลาเดิม (สองโต๊ะกดพร้อมกันได้ผลเดียว) · `409 NOT_ELIGIBLE`
+- `POST /admin/checkin/{registrationId}/undo` `{ note }` (**SuperAdmin, Organizer เท่านั้น** Staff ได้ 403) → `CheckInRunner` · `note` บังคับ ≤ 200 · `409 NOT_CHECKED_IN`
+- `GET /admin/events/{eventId}/checkins?checkedIn=true|false&distance=&q=&page=&pageSize=` → `{ runners: { items: CheckInRunner[], page, pageSize, total }, summary: { paid, checkedIn } }` · `q` ค้นชื่อ/เลขบิบ/เลขออเดอร์
+- ทุกการเช็กอิน/ยกเลิกถูกบันทึกใน CheckInLog และ AuditLog
 
 ## 8. การเปลี่ยนแปลงฝั่งนักวิ่ง (ผลข้างเคียง)
 `GET /orders/{id}/payment` → `payment` มี `note` เพิ่ม (เหตุผลที่เจ้าหน้าที่ปฏิเสธ แสดงให้นักวิ่งเห็นถ้าไม่ null)

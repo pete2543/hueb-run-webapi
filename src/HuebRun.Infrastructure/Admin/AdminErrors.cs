@@ -78,4 +78,19 @@ public static class AdminErrors
 
     public static AppException MaxUsesBelowUsed(int maxUses, int used) =>
         new(409, "MAX_USES_BELOW_USED", "ลดจำนวนครั้งที่ใช้ได้ต่ำกว่าที่ถูกใช้ไปแล้วไม่ได้", new { maxUses, used });
+
+    public static AppException CheckInTokenNotFound() =>
+        new(404, "CHECKIN_TOKEN_NOT_FOUND", "ไม่พบนักวิ่งจาก QR นี้");
+
+    public static AppException RegistrationNotFound(int id) =>
+        new(404, "REGISTRATION_NOT_FOUND", "ไม่พบนักวิ่ง", new { id });
+
+    public static AppException NotEligibleForCheckIn() =>
+        new(409, "NOT_ELIGIBLE", "นักวิ่งคนนี้เช็กอินไม่ได้ (ยังไม่ชำระเงิน ถูกยกเลิก หรือยังไม่มีเลขบิบ)");
+
+    public static AppException NotCheckedIn() =>
+        new(409, "NOT_CHECKED_IN", "นักวิ่งคนนี้ยังไม่ได้เช็กอิน");
+
+    public static AppException TrackingNotAllowed(OrderStatus status, ShippingType type) =>
+        new(409, "TRACKING_NOT_ALLOWED", "ใส่เลขพัสดุได้เฉพาะออเดอร์ที่ชำระแล้วและเลือกส่งไปรษณีย์", new { status = status.ToString(), shipping = type.ToString() });
 }

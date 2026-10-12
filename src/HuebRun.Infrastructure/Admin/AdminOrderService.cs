@@ -27,7 +27,7 @@ public sealed record AdminOrderDetail(
     DateTime CreatedAt, DateTime ExpiresAt, DateTime? PaidAt, AdminOrderShipping Shipping,
     IReadOnlyList<AdminRegistrationInfo> Registrations, IReadOnlyList<AdminOrderPayment> Payments);
 
-public sealed class AdminOrderService(AppDbContext db, ICurrentAdmin admin, TimeProvider time)
+public sealed class AdminOrderService(AppDbContext db, AuditWriter audit, ICurrentAdmin admin, TimeProvider time)
 {
     // ใครเห็นข้อมูลอ่อนไหว (หัวข้อ 3.4): Organizer/SuperAdmin; Finance เห็นแค่ชื่อ/เบอร์/ยอด
     private bool SeesSensitive => admin.Role is AdminRoles.SuperAdmin or AdminRoles.Organizer;
@@ -112,6 +112,26 @@ public sealed class AdminOrderService(AppDbContext db, ICurrentAdmin admin, Time
             [.. order.Payments.OrderByDescending(p => p.Id).Select(p => new AdminOrderPayment(
                 p.Id, p.Status, p.RejectReason, p.ReviewNote, p.ExpectedAmount, p.PaidAmount, p.CreatedAt, p.TransferredAt,
                 p.VerifiedAt, p.ReviewedBy))]);
+    }
+
+    /// เลขพัสดุ (ส่ง EMS): เฉพาะออเดอร์ Paid ที่เลือกส่งไปรษณีย์; ค่าว่าง = ล้างเลข
+    public async Task<string?> SetTrackingAsync(Guid orderId, string? trackingNo, CancellationToken ct)
+    {
+        var value = string.IsNullOrWhiteSpace(trackingNo) ? null : trackingNo.Trim();
+        if (value is { Length: > 50 }) throw AdminErrors.Validation("trackingNo", "ยาวเกิน 50 ตัวอักษร");
+
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        var order = await db.Orders.AsNoTracking().Where(o => o.Id == orderId)
+            .Select(o => new { o.EventId, o.Status, o.TrackingNo, Type = o.ShippingOption.Type }).SingleOrDefaultAsync(ct)
+            ?? throw AdminErrors.OrderNotFound(orderId);
+        admin.EnsureEventAccess(order.EventId);
+        if (order.Status != OrderStatus.Paid || order.Type != ShippingType.Post) throw AdminErrors.TrackingNotAllowed(order.Status, order.Type);
+
+        await db.Orders.Where(o => o.Id == orderId).ExecuteUpdateAsync(s => s.SetProperty(o => o.TrackingNo, value), ct);
+        audit.Add("order.tracking", "Order", orderId.ToString(), new { trackingNo = order.TrackingNo }, new { trackingNo = value });
+        await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
+        return value;
     }
 
     private static string EscapeLike(string s) => s.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
