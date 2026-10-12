@@ -103,7 +103,7 @@ multipart ฟิลด์ `file` (.jpg .jpeg .png .webp ไม่เกิน 5 
 | POST | `/admin/auth/login` | – | ทุกบทบาท · body `{ email, password }` → `{ token, expiresAt, user: { id, name, email, role, isActive, eventIds, createdAt, lastLoginAt } }` · ส่ง `Authorization: Bearer <token>` (อายุ 8 ชม.) · ผิด 5 ครั้งล็อก 15 นาที (ตอบ `401 INVALID_CREDENTIALS` เหมือนกันทุกกรณี) · `429` เมื่อเกิน rate limit ต่อ IP |
 | GET | `/admin/auth/me` | – | ทุกบทบาท |
 | POST | `/admin/auth/change-password` | – | ทุกบทบาท · `{ currentPassword, newPassword }` → `204` token เดิมใช้ไม่ได้ |
-| GET | `/admin/events/{id}/dashboard` | 8 | Organizer, Finance, SuperAdmin |
+| GET | `/admin/events/{id}/dashboard` | 8 | Organizer, Finance, SuperAdmin · `{ orders: {total,paid,pending,expired,cancelled,refunded}, paidRunners, pendingRunners, payments: {needsReview,verifying}, revenue: {paid,pendingAmount}, distances[{quota,reserved,remaining,paidRunners,pendingRunners}], shirts[{stock,reserved,remaining,paidRunners}] }` ตัวเลขรวมเท่านั้น ไม่มีข้อมูลส่วนบุคคล · Pending ที่เลยเวลานับเป็น expired · revenue = ยอดโอน (`payableAmount`) |
 | GET | `/admin/events/{id}/orders?status=&q=&page=&pageSize=` | 9 | Organizer, Finance, SuperAdmin · `{ items, page, pageSize, total }` ใหม่สุดก่อน · `status` Pending/Paid/Expired/Cancelled/Refunded (Pending ที่เลยเวลานับเป็น Expired) · `q` ค้นเลขออเดอร์/ชื่อผู้ติดต่อ/เบอร์/ชื่อนักวิ่ง/เลขบิบ |
 | GET | `/admin/events/{id}/orders/export` | 9 | Organizer, SuperAdmin (Excel) |
 | GET | `/admin/orders/{id}` | 9 | Organizer, Finance, SuperAdmin · ออเดอร์ + นักวิ่ง + Payment ทุกใบ · Finance ไม่เห็นข้อมูลอ่อนไหว (อีเมล, ที่อยู่/เบอร์จัดส่ง, วันเกิด, เลขบัตร, ผู้ติดต่อฉุกเฉิน, MedicalNote → `null`) |
