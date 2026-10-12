@@ -40,6 +40,10 @@ API อยู่ที่ `http://localhost:5144/api/v1` · health: `/health` ·
 
 ใช้ของจริง: ตั้ง key SlipOK/MinIO แล้วลบ `"Payments": { "Mode": "Fake" }` ออกจาก `appsettings.Development.json` และผูกบัญชี PromptPay ของงานใน SlipOK LIFF ให้ตรงกับ `Event.PromptPayId`
 
+## Deploy
+
+Railway: ดู [`docs/deploy-railway.md`](docs/deploy-railway.md) (`Dockerfile` + `railway.json` อยู่ที่ root; migration รันก่อน deploy ผ่าน `scripts/migrate.sh`)
+
 ## เทสต์
 
 ```bash
