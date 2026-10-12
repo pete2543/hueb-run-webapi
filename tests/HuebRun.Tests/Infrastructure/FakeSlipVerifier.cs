@@ -10,6 +10,8 @@ public sealed class FakeSlipVerifier : ISlipVerifier
     private int _calls;
 
     public int Calls => _calls;
+    /// เรียกตอนตรวจ (เช่น จำลองลูกค้าตัดการเชื่อมต่อระหว่างรอผล)
+    public Action? OnVerify { get; set; }
 
     public FakeSlipVerifier Enqueue(params SlipCheckResult[] results)
     {
@@ -20,6 +22,7 @@ public sealed class FakeSlipVerifier : ISlipVerifier
     public Task<SlipCheckResult> VerifyAsync(SlipImage image, decimal expectedAmount, CancellationToken ct)
     {
         Interlocked.Increment(ref _calls);
+        OnVerify?.Invoke();
         return Task.FromResult(_results.TryDequeue(out var r) ? r : new SlipCheckResult.Unavailable(null));
     }
 

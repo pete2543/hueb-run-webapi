@@ -126,4 +126,22 @@ public sealed class PaymentRecheckTests(PostgresFixture pg) : OrderTestBase(pg)
         var (_, payment) = await Load(created.OrderId);
         Assert.Equal((PaymentStatus.Verifying, 2), (payment.Status, payment.CheckAttempts));
     }
+
+    [Fact]
+    public async Task Shutdown_during_recheck_still_applies_the_result()
+    {
+        var created = await CreateOrderOk();
+        await SubmitRetrying(created.OrderId);
+        using var shutdown = new CancellationTokenSource();
+        _verifier.Enqueue(FakeSlipVerifier.Ok(created.PayableAmount));
+        _verifier.OnVerify = shutdown.Cancel;
+
+        await using (var db = Pg.CreateDbContext())
+        {
+            var time = At(13);
+            await new PaymentRecheckService(db, Payments(db, time), _verifier, _storage, time).RecheckDueAsync(shutdown.Token);
+        }
+
+        Assert.Equal(OrderStatus.Paid, (await Load(created.OrderId)).Order);
+    }
 }

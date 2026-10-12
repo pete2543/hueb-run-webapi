@@ -32,19 +32,20 @@ public sealed class PaymentRecheckService(
                     .ExecuteUpdateAsync(s => s.SetProperty(x => x.NextCheckAt, now + PaymentService.ClaimWindow), ct);
                 if (claimed == 0) continue;
 
+                // จองแล้วทำให้จบแม้แอปกำลังปิด: ผลที่ SlipOK บันทึกไว้แล้วต้องไม่หาย (ดู PaymentService.SubmitSlipAsync)
                 SlipCheckResult result;
                 try
                 {
-                    var image = SlipFile.FromBytes(await storage.GetAsync(p.SlipObjectKey!, ct))
+                    var image = SlipFile.FromBytes(await storage.GetAsync(p.SlipObjectKey!, CancellationToken.None))
                         ?? throw new InvalidOperationException($"Stored slip {p.SlipObjectKey} is not an image");
-                    result = await verifier.VerifyAsync(image, p.ExpectedAmount, ct);
+                    result = await verifier.VerifyAsync(image, p.ExpectedAmount, CancellationToken.None);
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
                     logger?.LogError(ex, "Recheck of payment {PaymentId} could not reach storage/verifier", p.Id);
                     result = new SlipCheckResult.Unavailable(null);
                 }
-                await payments.ApplyResultAsync(p.Id, result, ct);
+                await payments.ApplyResultAsync(p.Id, result, CancellationToken.None);
                 checkedCount++;
             }
             catch (Exception ex) when (ex is not OperationCanceledException)

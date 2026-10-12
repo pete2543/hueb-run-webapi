@@ -253,4 +253,20 @@ public sealed class PaymentServiceTests(PostgresFixture pg) : OrderTestBase(pg)
         var pendingCount = await db.Orders.CountAsync(o => o.EventId == Ev.Id && o.Status == OrderStatus.Pending);
         Assert.Equal(paidCount + pendingCount, (await db.EventDistances.SingleAsync(d => d.Id == FiveK.Id)).ReservedCount);
     }
+
+    [Fact]
+    public async Task Client_disconnect_after_slip_is_saved_still_applies_the_result()
+    {
+        // SlipOK บันทึกสลิปแล้ว (log=true) ถ้าเราทิ้งผล ครั้งหน้าจะได้ 1012 → ตรวจมือทั้งที่จ่ายถูก
+        var created = await CreateOrderOk();
+        using var disconnect = new CancellationTokenSource();
+        _verifier.Enqueue(FakeSlipVerifier.Ok(created.PayableAmount));
+        _verifier.OnVerify = disconnect.Cancel;
+
+        await using (var db = Pg.CreateDbContext())
+            await Service(db, At(5)).SubmitSlipAsync(created.OrderId, Slips.Image(1), disconnect.Token);
+
+        var (order, payments) = await Load(created.OrderId);
+        Assert.Equal((OrderStatus.Paid, PaymentStatus.Verified), (order.Status, payments.Single().Status));
+    }
 }

@@ -79,8 +79,10 @@ public sealed class PaymentService(
             await tx.CommitAsync(ct);
         }
 
-        var result = await verifier.VerifyAsync(image, payment.ExpectedAmount, ct);
-        var submission = await ApplyResultAsync(payment.Id, result, ct);
+        // หลัง commit ห้ามยกเลิกกลางทาง: SlipOK บันทึกสลิปแล้ว (log=true) ถ้าทิ้งผล ครั้งหน้าจะได้ 1012 → ตรวจมือ
+        // เวลาถูกจำกัดด้วย timeout ของ HttpClient อยู่แล้ว
+        var result = await verifier.VerifyAsync(image, payment.ExpectedAmount, CancellationToken.None);
+        var submission = await ApplyResultAsync(payment.Id, result, CancellationToken.None);
         if (submission.Status == PaymentStatus.Rejected) throw PaymentErrors.SlipRejected(submission.PaymentId, submission.Reason!);
         return submission;
     }
