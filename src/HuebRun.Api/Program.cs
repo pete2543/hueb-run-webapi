@@ -25,6 +25,7 @@ if (builder.Configuration.GetValue("Jobs:PaymentRecheck:Enabled", true))
     builder.Services.AddHostedService<PaymentRecheckWorker>();
 
 builder.Services.AddAdminAuth();
+builder.Services.AddApiRateLimiting();
 builder.Services.Configure<ForwardedHeadersOptions>(o =>
 {
     // อยู่หลัง proxy ของ Railway: เชื่อ X-Forwarded-For เพื่อให้ IP ใน audit/rate limit เป็นของผู้ใช้จริง

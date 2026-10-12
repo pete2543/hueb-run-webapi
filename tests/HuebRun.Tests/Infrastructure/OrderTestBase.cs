@@ -33,10 +33,11 @@ public abstract class OrderTestBase(PostgresFixture pg) : IAsyncLifetime
     protected int ThaiId { get; private set; }
 
     protected virtual void ConfigureEvent(Event e) { }
+    protected virtual IReadOnlyDictionary<string, string>? Settings => null;
 
     public async Task InitializeAsync()
     {
-        Factory = new ApiFactory(Pg.ConnectionString);
+        Factory = new ApiFactory(Pg.ConnectionString, settings: Settings);
         Client = Factory.CreateClient();   // เริ่มแอป → seed lookups/geo
         await using var db = Pg.CreateDbContext();
         Ev = await TestData.CreateRegistrationEventAsync(db, ConfigureEvent);

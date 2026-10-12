@@ -32,6 +32,8 @@ public sealed class ApiFactory(string connectionString, bool jobsEnabled = false
         builder.UseSetting("Minio:Bucket", "test");
         builder.UseSetting("Admin:JwtSecret", TestJwtSecret);
         builder.UseSetting("Admin:LoginRateLimitPerMinute", "1000");
+        builder.UseSetting("RateLimits:OrdersPerWindow", "1000");
+        builder.UseSetting("RateLimits:SlipsPerWindow", "1000");
         foreach (var (key, value) in settings ?? new Dictionary<string, string>())
             builder.UseSetting(key, value);
         builder.ConfigureTestServices(s =>

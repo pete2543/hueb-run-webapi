@@ -6,18 +6,14 @@ using HuebRun.Infrastructure.Admin;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Policy;
-using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using System.Threading.RateLimiting;
 
 namespace HuebRun.Api.Auth;
 
 public static class AdminAuthSetup
 {
-    public const string LoginRateLimit = "admin-login";
-
     public static void AddAdminAuth(this IServiceCollection services)
     {
         services.AddHttpContextAccessor();
@@ -62,19 +58,6 @@ public static class AdminAuthSetup
             });
 
         services.AddAuthorization(o => o.AddAdminPolicies());
-        services.AddOptions<RateLimiterOptions>().Configure<IOptions<AdminOptions>>((rl, admin) =>
-        {
-            rl.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-            rl.AddPolicy(LoginRateLimit, http => RateLimitPartition.GetFixedWindowLimiter(
-                http.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                _ => new FixedWindowRateLimiterOptions
-                {
-                    PermitLimit = admin.Value.LoginRateLimitPerMinute,
-                    Window = TimeSpan.FromMinutes(1),
-                }));
-            rl.OnRejected = (ctx, _) => new ValueTask(WriteAsync(ctx.HttpContext, 429, "TOO_MANY_REQUESTS", "ลองใหม่อีกครั้งในอีกสักครู่"));
-        });
-        services.AddRateLimiter(_ => { });
     }
 
     // token ถูกต้องแล้วยังต้องตรง DB: บัญชีเปิดอยู่, SecurityStamp ตรง (ปิดบัญชี/เปลี่ยนรหัส/บทบาท = ใช้ token เดิมไม่ได้ทันที)

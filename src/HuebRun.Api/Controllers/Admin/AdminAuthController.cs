@@ -15,7 +15,7 @@ public sealed record ChangePasswordRequest([Required] string CurrentPassword, [R
 public sealed class AdminAuthController(AdminAuthService auth, ICurrentAdmin current) : ControllerBase
 {
     [HttpPost("login")]
-    [EnableRateLimiting(AdminAuthSetup.LoginRateLimit)]
+    [EnableRateLimiting(RateLimiting.Login)]
     public Task<LoginResult> Login(LoginRequest req, CancellationToken ct) =>
         auth.LoginAsync(req.Email, req.Password, ct);
 
