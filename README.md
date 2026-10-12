@@ -43,7 +43,7 @@ API อยู่ที่ `http://localhost:5144/api/v1` · health: `/health` ·
 
 ## Deploy
 
-Railway: ดู [`docs/deploy-railway.md`](docs/deploy-railway.md) (`Dockerfile` + `railway.json` อยู่ที่ root; migration รันก่อน deploy ผ่าน `scripts/migrate.sh`)
+Railway: ดู [`docs/deploy-railway.md`](docs/deploy-railway.md) (`Dockerfile` + `railway.json` อยู่ที่ root; แอป migrate + seed เองตอนเริ่ม ปิดได้ด้วย `Database:MigrateOnStartup=false`)
 
 ## เทสต์
 

@@ -25,6 +25,15 @@ public sealed class PostgresFixture : IAsyncLifetime
         return db;
     }
 
+    // ฐานข้อมูลใหม่ที่ยังไม่มีตารางเลย (ไม่ migrate) คืน connection string
+    public async Task<string> CreateEmptyDatabaseAsync()
+    {
+        var name = "e_" + Guid.NewGuid().ToString("N")[..12];
+        await using (var admin = CreateDbContext())
+            await admin.Database.ExecuteSqlRawAsync($"CREATE DATABASE {name}");
+        return new Npgsql.NpgsqlConnectionStringBuilder(ConnectionString) { Database = name }.ConnectionString;
+    }
+
     public async Task InitializeAsync()
     {
         await _container.StartAsync();

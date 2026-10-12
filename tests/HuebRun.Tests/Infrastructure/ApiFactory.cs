@@ -8,7 +8,8 @@ using Microsoft.Extensions.Time.Testing;
 
 namespace HuebRun.Tests.Infrastructure;
 
-public sealed class ApiFactory(string connectionString, bool jobsEnabled = false) : WebApplicationFactory<Program>
+public sealed class ApiFactory(string connectionString, bool jobsEnabled = false, IReadOnlyDictionary<string, string>? settings = null)
+    : WebApplicationFactory<Program>
 {
     public FakeTimeProvider Time { get; } = new(new DateTimeOffset(2026, 11, 15, 0, 0, 0, TimeSpan.Zero));
     public FakeSlipVerifier Verifier { get; } = new();
@@ -27,6 +28,8 @@ public sealed class ApiFactory(string connectionString, bool jobsEnabled = false
         builder.UseSetting("Minio:AccessKey", "test");
         builder.UseSetting("Minio:SecretKey", "test");
         builder.UseSetting("Minio:Bucket", "test");
+        foreach (var (key, value) in settings ?? new Dictionary<string, string>())
+            builder.UseSetting(key, value);
         builder.ConfigureTestServices(s =>
         {
             s.RemoveAll<TimeProvider>();

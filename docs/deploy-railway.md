@@ -1,6 +1,6 @@
 # Deploy บน Railway
 
-repo มี `Dockerfile` + `railway.json` แล้ว: Railway build จาก Dockerfile, รัน migration ก่อนสลับเวอร์ชัน (`/app/migrate.sh`) และเช็ก `/health` ก่อนรับ traffic
+repo มี `Dockerfile` + `railway.json` แล้ว: Railway build จาก Dockerfile, แอป migrate + seed เองตอนเริ่ม และ `/health` ไม่ผ่านจนกว่า migration จะลงครบ (Railway จึงไม่สลับไปเวอร์ชันที่ DB ไม่พร้อม)
 
 ## 1. สร้าง project (ครั้งเดียว)
 
@@ -39,8 +39,10 @@ Cors__AllowedOrigins__0=<URL หน้าบ้าน เช่น https://huebr
 กด **Deploy** (หรือ push เข้า branch ที่เลือก) → ดู log:
 
 1. Build image
-2. Pre-deploy: `migrate.sh` รัน migration → ต้องจบด้วย `Done.`
-3. แอปขึ้น → health check `/health` ต้องได้ `Healthy`
+2. แอปขึ้น → migrate ฐานข้อมูลที่ `ConnectionStrings__DefaultConnection` ชี้อยู่ (database `railway`) แล้ว seed ข้อมูลกลาง (คำนำหน้า สัญชาติ จังหวัด ฯลฯ)
+3. health check `/health` ต้องได้ `Healthy`
+
+ไม่ต้องรัน `docs/sql/schema.sql` เอง (ไฟล์นั้นมีไว้ดูโครงสร้าง/ให้ DBA) · ปิด migrate อัตโนมัติได้ด้วย `Database__MigrateOnStartup=false` แล้วรัน `/app/migrate.sh` เอง
 
 ถ้าแอปไม่ขึ้นเพราะ `DataAnnotation validation failed for 'SlipOkOptions'/'MinioOptions'` = ขาด variable ตามที่ log บอกชื่อ
 
@@ -53,7 +55,7 @@ Settings → Networking → **Generate Domain** เพื่อได้ URL ส
 production ไม่มี seed งานตัวอย่าง และยังไม่มีหน้าแอดมิน → สร้างด้วย SQL:
 
 1. แก้ค่าใน [`docs/sql/create-event.sql`](sql/create-event.sql) — ชื่องาน, slug, วันเวลา (UTC), ระยะ/ราคา/โควตา, ไซซ์เสื้อ, ค่าส่ง และ **`PromptPayId` + ชื่อบัญชีจริง**
-2. Postgres → **Data** → Query (หรือ `psql` ด้วย connection string จากแท็บ Connect) → วางทั้งไฟล์แล้วรันครั้งเดียว
+2. Postgres → **Data** → Query (หรือ `psql`/DataGrip ด้วย connection string จากแท็บ Connect) → วางทั้งไฟล์แล้วรันครั้งเดียว — **ต้องอยู่ใน database `railway`** (เช็กด้วย `SELECT current_database();`) ไม่ใช่ `postgres`
 3. เช็ก `GET https://xxx.up.railway.app/api/v1/events/<slug>`
 
 **ผูกบัญชีเดียวกันใน SlipOK LIFF** ไม่งั้นทุกสลิปจะได้ `WRONG_RECEIVER`
