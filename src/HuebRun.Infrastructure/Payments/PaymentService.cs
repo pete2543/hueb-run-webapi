@@ -90,6 +90,20 @@ public sealed class PaymentService(
     /// นำผลตรวจไปใช้กับ Payment ที่ยัง Verifying (ล็อกแถวไว้ คนอื่นจัดการไปแล้ว = คืนสถานะปัจจุบัน)
     public async Task<SlipSubmission> ApplyResultAsync(int paymentId, SlipCheckResult result, CancellationToken ct)
     {
+        try
+        {
+            return await ApplyOnceAsync(paymentId, result, ct);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation } pg
+                                           && pg.ConstraintName?.Contains("SlipTransRef") == true)
+        {
+            // สลิปเดียวกันถูกอีกออเดอร์ commit ไปพร้อมกัน: ทำใหม่รอบเดียว รอบนี้เห็นแถวนั้นแล้ว จึงตีเป็น DUPLICATE_SLIP
+            return await ApplyOnceAsync(paymentId, result, ct);
+        }
+    }
+
+    private async Task<SlipSubmission> ApplyOnceAsync(int paymentId, SlipCheckResult result, CancellationToken ct)
+    {
         var now = Now;
         db.ChangeTracker.Clear();
         await using var tx = await db.Database.BeginTransactionAsync(ct);
@@ -141,7 +155,8 @@ public sealed class PaymentService(
         var original = order.CreatedAt.AddMinutes(reservation);
         var grace = now.AddMinutes(options.Value.RejectGraceMinutes);
         if (grace < original) grace = original;
-        await db.Orders.Where(o => o.Id == order.Id && o.Status == OrderStatus.Pending)
+        // ExpiresAt > now: ออเดอร์ที่เลยเวลาแล้วแต่ job ยังไม่ปิด ต้องไม่ถูกต่อเวลากลับมา
+        await db.Orders.Where(o => o.Id == order.Id && o.Status == OrderStatus.Pending && o.ExpiresAt > now)
             .ExecuteUpdateAsync(s => s.SetProperty(o => o.ExpiresAt, grace), ct);
     }
 

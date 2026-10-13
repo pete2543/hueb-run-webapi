@@ -119,6 +119,27 @@ public class SlipOkVerifierTests
         Assert.Null(u.RawJson);   // ไม่ใช่ JSON เก็บลง jsonb ไม่ได้
     }
 
+    [Theory]
+    [InlineData("[]")]
+    [InlineData("\"oops\"")]
+    [InlineData("null")]
+    [InlineData("123")]
+    [InlineData("""{ "code": "1012" }""")]                                               // code เป็นสตริง
+    [InlineData("""{ "success": true, "data": { "success": true, "transRef": "A", "amount": "400.01" } }""")]   // amount เป็นสตริง
+    [InlineData("""{ "success": true, "data": { "success": true, "transRef": "A", "amount": null } }""")]
+    public async Task Unexpected_json_shapes_are_unavailable_not_a_crash(string body)
+    {
+        var (r, _) = await Verify(new StubHandler(HttpStatusCode.OK, body));
+        Assert.IsType<SlipCheckResult.Unavailable>(r);
+    }
+
+    [Fact]
+    public async Task Retry_code_with_a_malformed_delay_falls_back_to_the_default_wait()
+    {
+        var (r, _) = await Verify(new StubHandler(HttpStatusCode.OK, """{ "code": 1010, "data": { "delay": "5" } }"""));
+        Assert.Equal(TimeSpan.FromMinutes(5), Assert.IsType<SlipCheckResult.Retry>(r).After);
+    }
+
     [Fact]
     public async Task Network_failure_and_timeout_are_unavailable()
     {

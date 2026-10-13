@@ -15,5 +15,6 @@ public sealed class MinioOptions
     /// true = https://host/bucket/key (MinIO); false = https://bucket.host/key (Railway/Tigris บังคับแบบนี้กับ bucket ใหม่)
     public bool ForcePathStyle { get; set; } = true;
     [Range(1, long.MaxValue)] public long MaxFileSizeBytes { get; set; } = 5 * 1024 * 1024;
-    public string[] AllowedExtensions { get; set; } = [];
+    /// ว่าง = ทุกไฟล์ถูกปฏิเสธหมด จึงให้แอปไม่ขึ้นแทนที่จะพังตอนนักวิ่งอัปสลิป
+    [MinLength(1)] public string[] AllowedExtensions { get; set; } = [];
 }
