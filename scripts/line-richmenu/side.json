@@ -1,0 +1,14 @@
+{
+  "size": { "width": 2500, "height": 1686 },
+  "selected": true,
+  "name": "hueb-run-side",
+  "chatBarText": "เมนู HUEB RUN",
+  "areas": [
+    { "bounds": { "x": 0,    "y": 0,    "width": 1000, "height": 1686 }, "action": { "type": "uri", "label": "สมัครวิ่ง", "uri": "https://hueb.run/register" } },
+    { "bounds": { "x": 1000, "y": 0,    "width": 756,  "height": 638 },  "action": { "type": "uri", "label": "ตั๋วของฉัน", "uri": "https://hueb.run/orders" } },
+    { "bounds": { "x": 1756, "y": 0,    "width": 744,  "height": 638 },  "action": { "type": "uri", "label": "ข้อมูลงาน", "uri": "https://hueb.run/#info" } },
+    { "bounds": { "x": 1000, "y": 638,  "width": 756,  "height": 599 },  "action": { "type": "uri", "label": "รับเสื้อ & BIB", "uri": "https://hueb.run/#pickup" } },
+    { "bounds": { "x": 1756, "y": 638,  "width": 744,  "height": 599 },  "action": { "type": "uri", "label": "คำถามที่พบบ่อย", "uri": "https://hueb.run/faq" } },
+    { "bounds": { "x": 1000, "y": 1237, "width": 1500, "height": 449 },  "action": { "type": "message", "label": "ติดต่อทีมงาน", "text": "ติดต่อทีมงาน" } }
+  ]
+}
