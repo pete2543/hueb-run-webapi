@@ -1,4 +1,5 @@
 using HuebRun.Domain;
+using HuebRun.Infrastructure.Line;
 using Microsoft.EntityFrameworkCore;
 
 namespace HuebRun.Infrastructure.Admin;
@@ -27,7 +28,7 @@ public sealed record AdminOrderDetail(
     DateTime CreatedAt, DateTime ExpiresAt, DateTime? PaidAt, AdminOrderShipping Shipping,
     IReadOnlyList<AdminRegistrationInfo> Registrations, IReadOnlyList<AdminOrderPayment> Payments);
 
-public sealed class AdminOrderService(AppDbContext db, AuditWriter audit, ICurrentAdmin admin, TimeProvider time)
+public sealed class AdminOrderService(AppDbContext db, AuditWriter audit, ICurrentAdmin admin, TimeProvider time, NotificationEnqueuer notifications)
 {
     // ใครเห็นข้อมูลอ่อนไหว (หัวข้อ 3.4): Organizer/SuperAdmin; Finance เห็นแค่ชื่อ/เบอร์/ยอด
     private bool SeesSensitive => admin.Role is AdminRoles.SuperAdmin or AdminRoles.Organizer;
@@ -128,6 +129,9 @@ public sealed class AdminOrderService(AppDbContext db, AuditWriter audit, ICurre
         if (order.Status != OrderStatus.Paid || order.Type != ShippingType.Post) throw AdminErrors.TrackingNotAllowed(order.Status, order.Type);
 
         await db.Orders.Where(o => o.Id == orderId).ExecuteUpdateAsync(s => s.SetProperty(o => o.TrackingNo, value), ct);
+        if (value is not null)
+            await notifications.EnqueueForOrderAsync(orderId, "shipping_sent",
+                new Dictionary<string, string> { ["TrackingNo"] = value }, $"shipping_sent:{orderId}:{value}", ct);
         audit.Add("order.tracking", "Order", orderId.ToString(), new { trackingNo = order.TrackingNo }, new { trackingNo = value });
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);

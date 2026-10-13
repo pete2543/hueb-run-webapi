@@ -1,5 +1,6 @@
 using HuebRun.Domain;
 using HuebRun.Infrastructure.Admin;
+using HuebRun.Infrastructure.Line;
 using HuebRun.Infrastructure.Orders;
 using Microsoft.AspNetCore.Identity;
 using HuebRun.Infrastructure.Payments;
@@ -18,6 +19,7 @@ public static class DependencyInjection
         services.AddDbContext<AppDbContext>(o =>
             o.UseNpgsql(config.GetConnectionString("DefaultConnection") ?? ""));
         services.AddAdmin(config);
+        services.AddLine(config);
         services.AddScoped<OrderService>();
         services.AddScoped<OrderPaymentService>();
         services.AddScoped<OrderExpiryService>();
@@ -84,5 +86,25 @@ public static class DependencyInjection
         services.AddScoped<AdminRefundService>();
         services.AddScoped<AdminAuditService>();
         services.AddScoped<AdminCheckInService>();
+    }
+
+    private static void AddLine(this IServiceCollection services, IConfiguration config)
+    {
+        services.AddOptions<LineOptions>().Bind(config.GetSection("Line"));
+        services.AddHttpClient<ILineMessenger, LineMessenger>((sp, http) =>
+        {
+            http.BaseAddress = new Uri(sp.GetRequiredService<IOptions<LineOptions>>().Value.ApiBaseUrl.TrimEnd('/') + "/");
+            http.Timeout = TimeSpan.FromSeconds(15);
+        });
+        services.AddHttpClient<ILineIdentityVerifier, LineIdentityVerifier>((sp, http) =>
+        {
+            http.BaseAddress = new Uri(sp.GetRequiredService<IOptions<LineOptions>>().Value.ApiBaseUrl.TrimEnd('/') + "/");
+            http.Timeout = TimeSpan.FromSeconds(10);
+        });
+        services.AddScoped<NotificationEnqueuer>();
+        services.AddScoped<NotificationDispatcher>();
+        services.AddScoped<LineWebhookService>();
+        services.AddScoped<LineLinkService>();
+        services.AddScoped<AdminBroadcastService>();
     }
 }

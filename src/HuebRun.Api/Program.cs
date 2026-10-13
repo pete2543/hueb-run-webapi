@@ -23,6 +23,8 @@ if (builder.Configuration.GetValue("Jobs:OrderExpiry:Enabled", true))
     builder.Services.AddHostedService<OrderExpiryWorker>();
 if (builder.Configuration.GetValue("Jobs:PaymentRecheck:Enabled", true))
     builder.Services.AddHostedService<PaymentRecheckWorker>();
+if (builder.Configuration.GetValue("Jobs:Notifications:Enabled", true))
+    builder.Services.AddHostedService<NotificationWorker>();
 
 builder.Services.AddAdminAuth();
 builder.Services.AddApiRateLimiting();
