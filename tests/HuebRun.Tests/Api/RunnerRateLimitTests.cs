@@ -12,6 +12,7 @@ public sealed class RunnerRateLimitTests(PostgresFixture pg) : OrderTestBase(pg)
     {
         ["RateLimits:OrdersPerWindow"] = "2",
         ["RateLimits:SlipsPerWindow"] = "3",
+        ["RateLimits:PromoChecksPerWindow"] = "4",
         ["RateLimits:WindowMinutes"] = "10",
     };
 
@@ -84,5 +85,28 @@ public sealed class RunnerRateLimitTests(PostgresFixture pg) : OrderTestBase(pg)
             Assert.Equal(HttpStatusCode.OK, (await Client.GetAsync($"/api/v1/orders/{order.OrderId}")).StatusCode);
             Assert.Equal(HttpStatusCode.OK, (await Client.GetAsync($"/api/v1/orders/{order.OrderId}/payment")).StatusCode);
         }
+    }
+
+    private Task<HttpResponseMessage> ValidatePromoFrom(string ip, string code)
+    {
+        var req = new HttpRequestMessage(HttpMethod.Post, $"/api/v1/events/{Ev.Slug}/promo/validate")
+            { Content = JsonContent.Create(new { code, distanceIds = new[] { FiveK.Id } }) };
+        req.Headers.Add("X-Forwarded-For", ip);
+        return Client.SendAsync(req);
+    }
+
+    [Fact]
+    public async Task Guessing_promo_codes_is_limited_per_ip_and_does_not_eat_the_order_budget()
+    {
+        for (var i = 0; i < 4; i++)
+            Assert.Equal(HttpStatusCode.UnprocessableEntity, (await ValidatePromoFrom("192.0.2.5", "GUESS" + i)).StatusCode);   // ไม่มีโค้ดนี้ แต่ยังไม่ถูกบล็อก
+
+        var blocked = await ValidatePromoFrom("192.0.2.5", "GUESS-LAST");
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, blocked.StatusCode);
+        Assert.Equal("TOO_MANY_REQUESTS", (await blocked.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
+        Assert.True(blocked.Headers.Contains("Retry-After"));
+        Assert.Equal(HttpStatusCode.Created, (await PostOrderFrom("192.0.2.5", "ยังสมัครได้")).StatusCode);   // คนละถังกับสร้างออเดอร์
+        Assert.NotEqual(HttpStatusCode.TooManyRequests, (await ValidatePromoFrom("192.0.2.6", "OTHER")).StatusCode);   // IP อื่นไม่โดน
     }
 }

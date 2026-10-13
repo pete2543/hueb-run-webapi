@@ -35,7 +35,7 @@ public abstract class OrderTestBase(PostgresFixture pg) : IAsyncLifetime
     protected virtual void ConfigureEvent(Event e) { }
     protected virtual IReadOnlyDictionary<string, string>? Settings => null;
 
-    public async Task InitializeAsync()
+    public virtual async Task InitializeAsync()
     {
         Factory = new ApiFactory(Pg.ConnectionString, settings: Settings);
         Client = Factory.CreateClient();   // เริ่มแอป → seed lookups/geo

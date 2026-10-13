@@ -2,8 +2,8 @@
 
 อัปเดต: 2026-10-12 · branch `feat/admin-auth` · สัญญาแบบย่ออยู่ที่ `docs/api-contract.md` (หัวข้อ Admin) ไฟล์นี้ลงรายละเอียดรูปแบบ request/response ที่ทำเสร็จแล้ว
 
-ทำแล้ว: auth, ผู้ใช้, ตรวจสลิป, ออเดอร์, ตั้งค่างาน, โค้ดส่วนลด, แดชบอร์ด, นักวิ่ง/export, เลขพัสดุ, เช็กอิน, คืนเงิน, audit
-ยังไม่มี (อย่าเรียก): ประกาศ
+ทำแล้ว: auth, ผู้ใช้, ตรวจสลิป, ออเดอร์, ตั้งค่างาน, โค้ดส่วนลด, แดชบอร์ด, นักวิ่ง/export, เลขพัสดุ, เช็กอิน, คืนเงิน, audit, ประกาศ (LINE)
+ยังไม่มี (อย่าเรียก): –
 
 ## 1. กติกากลาง
 
@@ -14,7 +14,7 @@
   - `400 VALIDATION_ERROR` — `details` = `{ "ชื่อฟิลด์": ["ข้อความ"] }` (ฟิลด์ใน array ใช้ `distances[0].quota`)
   - `401 UNAUTHORIZED` — ไม่มี/หมดอายุ/ถูกเพิกถอน token → ล้าง session แล้วไป login
   - `403 FORBIDDEN` — บทบาทไม่พอ หรือไม่มีสิทธิ์งานนั้น
-  - `429 TOO_MANY_REQUESTS` — login (10 ครั้ง/นาที/IP) · ฝั่งนักวิ่ง: สร้างออเดอร์ 10 และอัปสลิป 20 ครั้ง/10 นาที/IP · มี header `Retry-After` (วินาที)
+  - `429 TOO_MANY_REQUESTS` — login (10 ครั้ง/นาที/IP) · ฝั่งนักวิ่ง: สร้างออเดอร์ 10, อัปสลิป 20 และตรวจโค้ดส่วนลด 30 ครั้ง/10 นาที/IP · มี header `Retry-After` (วินาที)
 - รายการแบ่งหน้า: query `page` (เริ่ม 1), `pageSize` (ค่าเริ่ม 20, สูงสุด 100) → `{ items, page, pageSize, total }`
 - **สิทธิ์ต้องตรงกับตารางนี้** (เช็กเมนู/ปุ่มฝั่งหน้าบ้านด้วย แต่ API เป็นตัวตัดสิน)
 
@@ -221,7 +221,27 @@
 - `userId` เป็น `null` ได้ (เช่น `auth.login_failed` ที่อีเมลไม่มีในระบบ — `entityId` คืออีเมลที่ลอง)
 - `from` (รวม) / `to` (ไม่รวม) ต้องมีเขตเวลา มิฉะนั้น `400`
 
+## 7.5 ประกาศ LINE (SuperAdmin, Organizer)
+
+ผู้รับ = คนที่**ผูก LINE กับออเดอร์แล้วและยังเป็นเพื่อนกับ OA** เท่านั้น (ดู `docs/line-setup.md`) ออเดอร์ที่ไม่ผูก LINE ส่งไม่ถึง → UI ต้องแสดงตัวเลขให้เห็นก่อนส่ง
+```json
+{ "id": 1, "eventId": 1, "title": "…", "body": "…", "channel": "Line", "audienceDistanceId": null, "onlyPaid": true,
+  "status": "Draft|Scheduled|Sending|Sent|Cancelled", "scheduledAt": null, "sentAt": null,
+  "recipientCount": 0, "successCount": 0, "failCount": 0, "createdAt": "…", "createdBy": "ชื่อ",
+  "audience": { "targetOrders": 120, "recipients": 45 } }
+```
+- `GET /admin/events/{eventId}/broadcasts?status=&page=&pageSize=` (ไม่มี `audience` ในรายการ)
+- `POST /admin/events/{eventId}/broadcasts` `{ title ≤100, body ≤2000, audienceDistanceId?, onlyPaid? }` → `201` ร่าง + `audience` · `onlyPaid` ค่าเริ่ม `true`; `false` = รวมออเดอร์ที่ยังรอจ่าย (ไม่หมดเวลา)
+- `GET /admin/broadcasts/{id}` — ร่างมี `audience` (คำนวณสดทุกครั้ง); `PUT /admin/broadcasts/{id}` แก้ได้เฉพาะ `Draft` (`409 BROADCAST_WRONG_STATE`)
+- **flow ส่ง**: แสดง `audience.recipients` ให้แอดมินยืนยัน (และ `targetOrders − recipients` = ที่ส่งไม่ถึง) → `POST /admin/broadcasts/{id}/send` `{ expectedRecipients: <ตัวเลขที่ยืนยัน>, scheduledAt? }`
+  - `409 AUDIENCE_CHANGED` (`details.current`) ถ้าจำนวนเปลี่ยนระหว่างรอ → แสดงตัวเลขใหม่ให้ยืนยันอีกรอบ · `409 NO_RECIPIENTS` · `409 BROADCAST_WRONG_STATE`
+  - `scheduledAt` ต้องอนาคตและมีเขตเวลา → สถานะ `Scheduled`; ไม่ส่ง = `Sending` ทันที
+  - ส่งจริงทีละข้อความโดย worker (ไม่กี่วินาทีถึงหลายนาที) → poll `GET /admin/broadcasts/{id}` ดู `successCount`/`failCount` จนสถานะเป็น `Sent`
+- `POST /admin/broadcasts/{id}/cancel` — ใช้ได้กับ Draft/Scheduled/Sending; ข้อความที่ส่งไปแล้วเรียกคืนไม่ได้
+
 ## 8. การเปลี่ยนแปลงฝั่งนักวิ่ง (ผลข้างเคียง)
+`POST /orders/{orderId}/line` `{ idToken }` → `204` ผูก LINE (LIFF `liff.getIDToken()`) กับออเดอร์เพื่อรับแจ้งเตือน: `400 INVALID_LINE_TOKEN`, `409 LINE_ALREADY_LINKED`, `409 ORDER_CLOSED`
+
 `GET /orders/{id}/payment` → `payment` มี `note` เพิ่ม (เหตุผลที่เจ้าหน้าที่ปฏิเสธ แสดงให้นักวิ่งเห็นถ้าไม่ null)
 
 ## 9. ลองใช้บนเครื่อง dev

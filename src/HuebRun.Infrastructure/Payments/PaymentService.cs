@@ -1,4 +1,5 @@
 using HuebRun.Domain;
+using HuebRun.Infrastructure.Line;
 using HuebRun.Infrastructure.Orders;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -9,7 +10,7 @@ namespace HuebRun.Infrastructure.Payments;
 /// ชำระเงินด้วยสลิป: ข้อมูล QR, รับสลิป, และนำผลตรวจไปเปลี่ยนสถานะ (ใช้ร่วมกับ job ตรวจซ้ำ)
 public sealed class PaymentService(
     AppDbContext db, OrderPaymentService orders, ISlipVerifier verifier, ISlipStorage storage,
-    TimeProvider time, IOptions<PaymentOptions> options)
+    TimeProvider time, IOptions<PaymentOptions> options, NotificationEnqueuer? notifications = null)
 {
     public const int MaxAttempts = 6;
     public static readonly TimeSpan MaxVerifyAge = TimeSpan.FromMinutes(60);
@@ -139,9 +140,12 @@ public sealed class PaymentService(
         if (payment.Status == PaymentStatus.Verifying && (payment.CheckAttempts >= MaxAttempts || now - payment.CreatedAt > MaxVerifyAge))
             Review(payment, PaymentRejectReason.VerifyTimeout);
 
-        // ไม่ผ่าน: ปลด hold เหลือเวลาให้อัปโหลดใหม่
+        // ไม่ผ่าน: ปลด hold เหลือเวลาให้อัปโหลดใหม่ + แจ้งนักวิ่งทาง LINE (ถ้าผูกไว้)
         if (payment.Status == PaymentStatus.Rejected && order.Status == OrderStatus.Pending)
             await ReleaseHoldAsync(order, now, ct);
+        if (payment.Status == PaymentStatus.Rejected && notifications is not null)
+            await notifications.EnqueueForOrderAsync(order.Id, "payment_rejected",
+                new Dictionary<string, string> { ["Reason"] = ReasonText(payment.RejectReason) }, $"payment_rejected:{payment.Id}", ct);
 
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
@@ -202,6 +206,15 @@ public sealed class PaymentService(
             Review(payment, PaymentRejectReason.OrderExpired);
         }
     }
+
+    public static string ReasonText(string? code) => code switch
+    {
+        PaymentRejectReason.InvalidSlip => "สลิปไม่ถูกต้องหรืออ่านไม่ได้",
+        PaymentRejectReason.AmountMismatch => "ยอดเงินไม่ตรงกับยอดที่ต้องชำระ",
+        PaymentRejectReason.WrongReceiver => "โอนเข้าบัญชีผู้รับไม่ถูกต้อง",
+        PaymentRejectReason.DuplicateSlip => "สลิปนี้ถูกใช้ไปแล้ว",
+        _ => "ตรวจสอบสลิปไม่ผ่าน",
+    };
 
     private static void Reject(Payment p, string reason) =>
         (p.Status, p.RejectReason, p.NextCheckAt) = (PaymentStatus.Rejected, reason, null);

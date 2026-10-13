@@ -1,4 +1,5 @@
 using HuebRun.Domain;
+using HuebRun.Infrastructure.Line;
 using HuebRun.Infrastructure.Orders;
 using HuebRun.Infrastructure.Payments;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +18,7 @@ public sealed record SlipLink(string Url, DateTime ExpiresAt);
 /// ตรวจสลิปด้วยมือ (Finance/SuperAdmin) — กติกา docs/admin-api-plan.md หัวข้อ 4.1
 public sealed class AdminPaymentService(
     AppDbContext db, OrderPaymentService orders, PaymentService payments, ISlipStorage storage,
-    AuditWriter audit, ICurrentAdmin admin, TimeProvider time, IOptions<PaymentOptions> options)
+    AuditWriter audit, ICurrentAdmin admin, TimeProvider time, IOptions<PaymentOptions> options, NotificationEnqueuer notifications)
 {
     public static readonly TimeSpan SlipLinkTtl = TimeSpan.FromMinutes(5);
     public const int MaxNoteLength = 500;
@@ -106,6 +107,8 @@ public sealed class AdminPaymentService(
         var order = await db.Orders.AsNoTracking().SingleAsync(o => o.Id == payment.OrderId, ct);
         if (order.Status == OrderStatus.Pending)
             await payments.ReleaseHoldAsync(order, now, ct);   // เปิดให้อัปโหลดสลิปใหม่ได้ถ้ายังไม่หมดเวลา
+        await notifications.EnqueueForOrderAsync(order.Id, "payment_rejected",
+            new Dictionary<string, string> { ["Reason"] = note }, $"payment_rejected:{paymentId}", ct);
 
         audit.Add("payment.reject", "Payment", paymentId.ToString(),
             new { status = PaymentStatus.NeedsReview.ToString() }, new { status = PaymentStatus.Rejected.ToString(), note });

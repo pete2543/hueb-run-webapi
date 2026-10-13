@@ -41,7 +41,8 @@
 | GET | `/orders/{orderId}/payment` | 5 | ข้อมูลสำหรับสร้าง QR (payload PromptPay, ยอดที่ต้องโอน, ชื่อบัญชี) |
 | POST | `/orders/{orderId}/payment/slip` | 5 | อัปโหลดสลิป (multipart) |
 | GET | `/orders/{orderId}/tickets` | 6 | เลขบิบ + `checkInToken` (หน้าเว็บสร้าง QR เอง) เฉพาะ `Paid` ไม่งั้น `409 ORDER_NOT_PAID` |
-| POST | `/line/webhook` | – | follow/unfollow จาก LINE (ตรวจ signature) |
+| POST | `/line/webhook` | – | follow/unfollow จาก LINE (ตรวจ `X-Line-Signature` → `401` ถ้าไม่ถูก) |
+| POST | `/orders/{orderId}/line` | – | `{ idToken }` จาก LIFF → ผูก LINE กับออเดอร์ `204` · `400 INVALID_LINE_TOKEN`, `409 LINE_ALREADY_LINKED`, `409 ORDER_CLOSED` |
 | POST | `/auth/line/callback` | – | LINE Login callback เชื่อม `LineAccount` กับ Order |
 
 ### POST `/events/{slug}/orders`
@@ -125,8 +126,8 @@ multipart ฟิลด์ `file` (.jpg .jpeg .png .webp ไม่เกิน 5 
 | POST | `/admin/checkin/{registrationId}/confirm` | 14 | Staff, Organizer |
 | POST | `/admin/checkin/{registrationId}/undo` | 14 | Organizer |
 | GET | `/admin/events/{id}/checkins?checkedIn=&distance=&q=&page=` | 14 | Staff, Organizer, SuperAdmin · `{ runners: {items,…}, summary: {paid, checkedIn} }` |
-| GET/POST | `/admin/events/{id}/broadcasts` | 15 | Organizer |
-| POST | `/admin/broadcasts/{id}/send` | 15 | Organizer (ตรวจจำนวนผู้รับก่อน) |
+| GET/POST | `/admin/events/{id}/broadcasts` | 15 | Organizer, SuperAdmin · POST สร้างร่าง `{ title, body, audienceDistanceId?, onlyPaid? }` · GET/PUT `/admin/broadcasts/{id}` (PUT เฉพาะร่าง) · ช่องทาง LINE เท่านั้น |
+| POST | `/admin/broadcasts/{id}/send` | 15 | Organizer, SuperAdmin · `{ expectedRecipients, scheduledAt? }` ต้องตรงกับจำนวนผู้รับปัจจุบัน (`409 AUDIENCE_CHANGED`) · `409 NO_RECIPIENTS` · ตั้งเวลาส่งล่วงหน้าได้ · `POST /admin/broadcasts/{id}/cancel` ยกเลิก (ข้ามข้อความที่ยังไม่ส่ง) |
 | GET | `/admin/events/{id}/refunds?status=&page=&pageSize=` | 16 | Finance, SuperAdmin |
 | POST | `/admin/orders/{id}/refunds` | 16 | Finance, SuperAdmin · `{ reason, paymentId?, amount? }` → `201` · คืนทั้งใบเท่านั้น (`amount` ≤ ยอดที่จ่าย ใช้หักค่าธรรมเนียมได้) · `409 REFUND_NOT_ALLOWED`, `409 REFUND_EXISTS` |
 | POST | `/admin/refunds/{id}/approve` · `/reject` `{ note }` · `/complete` `{ externalRef, note? }` | 16 | Finance, SuperAdmin · Requested→Approved→Completed (หรือ Requested→Rejected) · approve = ยกเลิกนักวิ่ง/บิบ คืนโควตา ไซซ์เสื้อ และโค้ดส่วนลด · complete = ออเดอร์ `Refunded` · `409 REFUND_WRONG_STATE` |

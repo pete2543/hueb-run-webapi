@@ -1,4 +1,5 @@
 using HuebRun.Domain;
+using HuebRun.Infrastructure.Line;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql;
@@ -8,7 +9,7 @@ namespace HuebRun.Infrastructure.Orders;
 public sealed record MarkPaidResult(bool AlreadyPaid);
 
 /// เปลี่ยนออเดอร์เป็น Paid และออกเลขบิบ — ขั้นชำระเงินเรียกใช้ (ร่วม transaction ที่เปิดอยู่ได้)
-public sealed class OrderPaymentService(AppDbContext db)
+public sealed class OrderPaymentService(AppDbContext db, NotificationEnqueuer? notifications = null)
 {
     public async Task<MarkPaidResult> MarkPaidAsync(Guid orderId, DateTime paidAtUtc, CancellationToken ct = default)
     {
@@ -43,6 +44,8 @@ public sealed class OrderPaymentService(AppDbContext db)
                 registration.BibNumber = $"{registration.EventDistance.BibPrefix}{next++:D4}";
         }
 
+        if (notifications is not null)
+            await notifications.EnqueueForOrderAsync(orderId, "order_paid", null, $"order_paid:{orderId}", ct);
         await db.SaveChangesAsync(ct);
         if (owned is not null) await owned.CommitAsync(ct);
         return new MarkPaidResult(AlreadyPaid: false);

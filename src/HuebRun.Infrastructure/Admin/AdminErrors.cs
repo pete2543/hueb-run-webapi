@@ -105,4 +105,16 @@ public static class AdminErrors
 
     public static AppException RefundWrongState(RefundStatus status) =>
         new(409, "REFUND_WRONG_STATE", "สถานะคำขอไม่ถูกต้องสำหรับการทำรายการนี้ (มีคนจัดการไปก่อน?)", new { status = status.ToString() });
+
+    public static AppException BroadcastNotFound(int id) =>
+        new(404, "BROADCAST_NOT_FOUND", "ไม่พบประกาศ", new { id });
+
+    public static AppException BroadcastWrongState(BroadcastStatus status) =>
+        new(409, "BROADCAST_WRONG_STATE", "สถานะประกาศไม่ถูกต้องสำหรับการทำรายการนี้", new { status = status.ToString() });
+
+    public static AppException AudienceChanged(int expected, int current) =>
+        new(409, "AUDIENCE_CHANGED", "จำนวนผู้รับเปลี่ยนไปจากที่ยืนยัน กรุณาตรวจอีกครั้ง", new { expected, current });
+
+    public static AppException NoRecipients() =>
+        new(409, "NO_RECIPIENTS", "ไม่มีผู้รับที่ส่ง LINE ถึงได้ (ต้องผูก LINE กับออเดอร์และยังเป็นเพื่อนกับ OA)");
 }
