@@ -2,8 +2,8 @@
 
 อัปเดต: 2026-10-12 · branch `feat/admin-auth` · สัญญาแบบย่ออยู่ที่ `docs/api-contract.md` (หัวข้อ Admin) ไฟล์นี้ลงรายละเอียดรูปแบบ request/response ที่ทำเสร็จแล้ว
 
-ทำแล้ว: auth, ผู้ใช้, ตรวจสลิป, ออเดอร์, ตั้งค่างาน, โค้ดส่วนลด, แดชบอร์ด, นักวิ่ง/export, เลขพัสดุ, เช็กอิน, คืนเงิน
-ยังไม่มี (อย่าเรียก): audit, ประกาศ
+ทำแล้ว: auth, ผู้ใช้, ตรวจสลิป, ออเดอร์, ตั้งค่างาน, โค้ดส่วนลด, แดชบอร์ด, นักวิ่ง/export, เลขพัสดุ, เช็กอิน, คืนเงิน, audit
+ยังไม่มี (อย่าเรียก): ประกาศ
 
 ## 1. กติกากลาง
 
@@ -208,6 +208,18 @@
 - `POST /admin/refunds/{id}/complete` `{ externalRef, note? }` — `externalRef` บังคับ (เลขอ้างอิงการโอนคืน ≤ 100) → ออเดอร์ `kind: "Order"` เป็น `Refunded`
 - ระบบ**ไม่ได้โอนเงินให้** — แอดมินโอนคืนเองนอกระบบ แล้วค่อยกด complete พร้อมเลขอ้างอิง
 - ปุ่มที่ควรแสดง: Requested → อนุมัติ/ปฏิเสธ · Approved → "โอนคืนแล้ว" (complete) · ปุ่ม "ขอคืนเงิน" ที่หน้ารายละเอียดออเดอร์ (สถานะ Paid) และที่รายการสลิปรอตรวจ `ALREADY_PAID`/`CAPACITY_FULL`
+
+## 7.4 Audit (SuperAdmin)
+
+`GET /admin/audit?userId=&action=&entityType=&entityId=&from=&to=&page=&pageSize=` → `{ items, page, pageSize, total }` ใหม่สุดก่อน (อ่านอย่างเดียว)
+```json
+{ "id": 1, "createdAt": "…", "userId": "guid|null", "userName": "ชื่อ|null", "action": "payment.approve",
+  "entityType": "Payment", "entityId": "10", "oldValues": { … }|null, "newValues": { … }|null, "ipAddress": "1.2.3.4" }
+```
+- `oldValues`/`newValues` เป็น JSON object จริง (ไม่ใช่สตริง) รูปร่างต่างกันตาม `action` → แสดงแบบ key/value ทั่วไป หรือ diff
+- `action` ตรงตัว หรือลงท้าย `.` เพื่อกรองทั้งกลุ่ม · กลุ่มที่มี: `auth.` `user.` `payment.` `refund.` `event.` `promo.` `order.` `checkin.` `export.`
+- `userId` เป็น `null` ได้ (เช่น `auth.login_failed` ที่อีเมลไม่มีในระบบ — `entityId` คืออีเมลที่ลอง)
+- `from` (รวม) / `to` (ไม่รวม) ต้องมีเขตเวลา มิฉะนั้น `400`
 
 ## 8. การเปลี่ยนแปลงฝั่งนักวิ่ง (ผลข้างเคียง)
 `GET /orders/{id}/payment` → `payment` มี `note` เพิ่ม (เหตุผลที่เจ้าหน้าที่ปฏิเสธ แสดงให้นักวิ่งเห็นถ้าไม่ null)
