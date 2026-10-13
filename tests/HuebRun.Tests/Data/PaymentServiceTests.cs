@@ -291,4 +291,50 @@ public sealed class PaymentServiceTests(PostgresFixture pg) : OrderTestBase(pg)
         Assert.Equal(1, payments.Count(p => p.Status == PaymentStatus.Verified));
         Assert.Equal("B0001", order.Registrations.Single().BibNumber);
     }
+
+    [Fact]
+    public async Task Two_orders_racing_on_the_same_trans_ref_second_is_rejected_as_duplicate_not_a_crash()
+    {
+        var a = await CreateOrderOk();
+        var b = await CreateOrderOk();
+        _verifier.Enqueue(new SlipCheckResult.Retry(TimeSpan.FromMinutes(5), "{}"), new SlipCheckResult.Retry(TimeSpan.FromMinutes(5), "{}"));
+        var pa = (await Submit(a.OrderId, Slips.Image(1))).PaymentId;
+        var pb = (await Submit(b.OrderId, Slips.Image(2))).PaymentId;
+
+        // B ยังไม่ commit transRef นี้ → การตรวจซ้ำของ A มองไม่เห็น แล้วไปชนที่ unique index ตอนบันทึก
+        await using var blocker = Pg.CreateDbContext();
+        await using var blockerTx = await blocker.Database.BeginTransactionAsync();
+        await blocker.Payments.Where(p => p.Id == pb).ExecuteUpdateAsync(s => s.SetProperty(p => p.SlipTransRef, "TR-RACE"));
+
+        var applying = Task.Run(async () =>
+        {
+            await using var db = Pg.CreateDbContext();
+            return await Service(db, At(6)).ApplyResultAsync(pa, FakeSlipVerifier.Ok(a.PayableAmount, "TR-RACE"), default);
+        });
+        await Task.Delay(700);
+        await blockerTx.CommitAsync();
+
+        var result = await applying;
+
+        Assert.Equal((PaymentStatus.Rejected, PaymentRejectReason.DuplicateSlip), (result.Status, result.Reason));
+        var (order, _) = await Load(a.OrderId);
+        Assert.Equal(OrderStatus.Pending, order.Status);
+        Assert.Null(order.Registrations.Single().BibNumber);
+    }
+
+    [Fact]
+    public async Task Rejection_does_not_resurrect_an_order_that_is_already_past_its_deadline()
+    {
+        var created = await CreateOrderOk();
+        _verifier.Enqueue(new SlipCheckResult.Retry(TimeSpan.FromMinutes(5), "{}"));
+        var paymentId = (await Submit(created.OrderId, Slips.Image(1))).PaymentId;
+        var overdue = new DateTime(2026, 11, 15, 0, 3, 0, DateTimeKind.Utc);   // เลยเวลาแต่ job ยังไม่ได้ปิดออเดอร์
+        await using (var db = Pg.CreateDbContext())
+            await db.Orders.Where(o => o.Id == created.OrderId).ExecuteUpdateAsync(s => s.SetProperty(o => o.ExpiresAt, overdue));
+
+        await using var apply = Pg.CreateDbContext();
+        await Service(apply, At(6)).ApplyResultAsync(paymentId, new SlipCheckResult.Rejected(PaymentRejectReason.InvalidSlip, "{}"), default);
+
+        Assert.Equal(overdue, (await Load(created.OrderId)).Order.ExpiresAt);
+    }
 }

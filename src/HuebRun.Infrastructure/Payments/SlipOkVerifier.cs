@@ -51,15 +51,22 @@ public sealed class SlipOkVerifier(HttpClient http, IOptions<SlipOkOptions> opti
             return new SlipCheckResult.Unavailable(null);
         }
 
+        if (root.ValueKind != JsonValueKind.Object)
+        {
+            // JSON ที่ไม่ใช่ object (array/สตริง/ตัวเลข/null): อ่านฟิลด์ไม่ได้ ถือว่าใช้ไม่ได้ ไม่ปล่อยให้ exception หลุดไปเป็น 500
+            logger.LogError("SlipOK returned a non-object JSON response (HTTP {Status})", (int)status);
+            return new SlipCheckResult.Unavailable(raw);
+        }
+
         var data = root.TryGetProperty("data", out var d) && d.ValueKind == JsonValueKind.Object ? d : (JsonElement?)null;
         if (status == HttpStatusCode.OK && IsTrue(root, "success") && data is { } ok)
         {
             if (!IsTrue(ok, "success")) return new SlipCheckResult.Rejected(PaymentRejectReason.InvalidSlip, raw);
-            if (Str(ok, "transRef") is { } transRef && ok.TryGetProperty("amount", out var a) && a.TryGetDecimal(out var amount))
+            if (Str(ok, "transRef") is { } transRef && ok.TryGetProperty("amount", out var a) && a.ValueKind == JsonValueKind.Number && a.TryGetDecimal(out var amount))
                 return new SlipCheckResult.Verified(transRef, amount, Timestamp(ok), raw);
         }
 
-        var code = root.TryGetProperty("code", out var c) && c.TryGetInt32(out var n) ? n : 0;
+        var code = Int(root, "code") ?? 0;
         switch (code)
         {
             case 1012:
@@ -71,7 +78,7 @@ public sealed class SlipOkVerifier(HttpClient http, IOptions<SlipOkOptions> opti
             case 1000 or 1005 or 1006 or 1007 or 1008 or 1011:
                 return new SlipCheckResult.Rejected(PaymentRejectReason.InvalidSlip, raw);
             case 1010:
-                var delay = data is { } wait && wait.TryGetProperty("delay", out var dl) && dl.TryGetInt32(out var m) ? m : 5;
+                var delay = data is { } wait ? Int(wait, "delay") ?? 5 : 5;
                 return new SlipCheckResult.Retry(TimeSpan.FromMinutes(Math.Max(1, delay)), raw);
             case 1009:
                 return new SlipCheckResult.Retry(TimeSpan.FromMinutes(15), raw);
@@ -81,6 +88,10 @@ public sealed class SlipOkVerifier(HttpClient http, IOptions<SlipOkOptions> opti
                 return new SlipCheckResult.Unavailable(raw);
         }
     }
+
+    // TryGetInt32 โยน exception ถ้าไม่ใช่ตัวเลข (เช่น "1012" เป็นสตริง) จึงเช็กชนิดก่อน
+    private static int? Int(JsonElement e, string name) =>
+        e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.Number && v.TryGetInt32(out var n) ? n : null;
 
     private static bool IsTrue(JsonElement e, string name) =>
         e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.True;
