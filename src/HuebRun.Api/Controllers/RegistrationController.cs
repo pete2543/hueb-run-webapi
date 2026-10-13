@@ -9,6 +9,7 @@ namespace HuebRun.Api.Controllers;
 public sealed class RegistrationController(OrderService orders) : ControllerBase
 {
     [HttpPost("promo/validate")]
+    [EnableRateLimiting(RateLimiting.ValidatePromo)]
     public Task<PromoQuote> ValidatePromo(string slug, ValidatePromoRequest request, CancellationToken ct) =>
         orders.ValidatePromoAsync(slug, request, ct);
 

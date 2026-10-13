@@ -13,6 +13,8 @@ public sealed class RateLimitOptions
 {
     [Range(1, 100_000)] public int OrdersPerWindow { get; set; } = 10;
     [Range(1, 100_000)] public int SlipsPerWindow { get; set; } = 20;
+    /// ตรวจโค้ดส่วนลด: กันเดาโค้ด (เรียกถี่ได้กว่าสร้างออเดอร์เพราะหน้าสมัครเรียกทุกครั้งที่เปลี่ยนจำนวนคน/ระยะ)
+    [Range(1, 100_000)] public int PromoChecksPerWindow { get; set; } = 30;
     [Range(1, 1440)] public int WindowMinutes { get; set; } = 10;
 }
 
@@ -21,6 +23,7 @@ public static class RateLimiting
     public const string Login = "admin-login";
     public const string CreateOrder = "create-order";
     public const string UploadSlip = "upload-slip";
+    public const string ValidatePromo = "validate-promo";
 
     public static void AddApiRateLimiting(this IServiceCollection services)
     {
@@ -32,6 +35,7 @@ public static class RateLimiting
             rl.AddPolicy(Login, http => PerIp(http, admin.Value.LoginRateLimitPerMinute, TimeSpan.FromMinutes(1)));
             rl.AddPolicy(CreateOrder, http => PerIp(http, limits.Value.OrdersPerWindow, window));
             rl.AddPolicy(UploadSlip, http => PerIp(http, limits.Value.SlipsPerWindow, window));
+            rl.AddPolicy(ValidatePromo, http => PerIp(http, limits.Value.PromoChecksPerWindow, window));
             rl.OnRejected = (ctx, _) =>
             {
                 if (ctx.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retry))
