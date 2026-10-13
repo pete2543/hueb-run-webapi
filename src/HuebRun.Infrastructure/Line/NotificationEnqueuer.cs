@@ -3,6 +3,7 @@ using System.Text.Json;
 using HuebRun.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Npgsql;
 
 namespace HuebRun.Infrastructure.Line;
 
@@ -45,6 +46,29 @@ public sealed class NotificationEnqueuer(AppDbContext db, IOptions<LineOptions> 
             Status = NotificationStatus.Pending, ScheduledAt = now, CreatedAt = now,
         });
         return true;
+    }
+
+    /// ส่ง "จ่ายสำเร็จ" ให้ออเดอร์ที่จ่ายแล้วแต่ผูก LINE/เป็นเพื่อนทีหลัง (dedupe กันส่งซ้ำ) แล้วบันทึกเลย
+    public async Task<int> BackfillOrderPaidAsync(IEnumerable<Guid> orderIds, CancellationToken ct)
+    {
+        var queued = 0;
+        foreach (var id in orderIds)
+            if (await EnqueueForOrderAsync(id, "order_paid", null, $"order_paid:{id}", ct)) queued++;
+        if (queued > 0) await SaveIgnoringDuplicatesAsync(ct);
+        return queued;
+    }
+
+    /// เหตุการณ์สองทางพร้อมกัน (ผูก LINE กับ follow) อาจใส่ข้อความเดียวกันชน unique DedupeKey — ถือว่าอีกทางใส่ไปแล้ว
+    public async Task SaveIgnoringDuplicatesAsync(CancellationToken ct)
+    {
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
+        {
+            db.ChangeTracker.Clear();
+        }
     }
 
     public static string Render(string template, IReadOnlyDictionary<string, string> vars)

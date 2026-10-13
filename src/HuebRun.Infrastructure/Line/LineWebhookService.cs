@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 namespace HuebRun.Infrastructure.Line;
 
 /// webhook จาก LINE OA: follow/unfollow → อัปเดต LineAccount (ตรวจ X-Line-Signature = HMAC-SHA256(body, channel secret) แบบ base64)
-public sealed class LineWebhookService(AppDbContext db, IOptions<LineOptions> options, TimeProvider time)
+public sealed class LineWebhookService(AppDbContext db, IOptions<LineOptions> options, NotificationEnqueuer notifications, TimeProvider time)
 {
     public bool IsSignatureValid(string body, string? signature)
     {
@@ -36,10 +36,24 @@ public sealed class LineWebhookService(AppDbContext db, IOptions<LineOptions> op
             var userId = e.TryGetProperty("source", out var s) && s.ValueKind == JsonValueKind.Object
                          && s.TryGetProperty("userId", out var u) && u.ValueKind == JsonValueKind.String ? u.GetString() : null;
             if (string.IsNullOrEmpty(userId) || userId.Length > 100) continue;
-            if (type is "follow") { await SetFollowingAsync(userId, true, ct); handled++; }
+            if (type is "follow")
+            {
+                await SetFollowingAsync(userId, true, ct);
+                await BackfillPaidOrdersAsync(userId, ct);
+                handled++;
+            }
             else if (type is "unfollow") { await SetFollowingAsync(userId, false, ct); handled++; }
         }
         return handled;
+    }
+
+    // ผูก LINE ไว้แล้วแต่เพิ่งเป็นเพื่อน: ออเดอร์ที่จ่ายแล้วยังไม่เคยได้ "ชำระเงินสำเร็จ" ส่งตอนนี้
+    private async Task BackfillPaidOrdersAsync(string userId, CancellationToken ct)
+    {
+        var paid = await db.Orders.AsNoTracking()
+            .Where(o => o.LineAccount!.LineUserId == userId && o.Status == OrderStatus.Paid)
+            .Select(o => o.Id).ToListAsync(ct);
+        if (paid.Count > 0) await notifications.BackfillOrderPaidAsync(paid, ct);
     }
 
     private async Task SetFollowingAsync(string userId, bool following, CancellationToken ct)
