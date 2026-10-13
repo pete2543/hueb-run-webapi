@@ -43,6 +43,7 @@
 | GET | `/orders/{orderId}/tickets` | 6 | เลขบิบ + `checkInToken` (หน้าเว็บสร้าง QR เอง) เฉพาะ `Paid` ไม่งั้น `409 ORDER_NOT_PAID` |
 | POST | `/line/webhook` | – | follow/unfollow จาก LINE (ตรวจ `X-Line-Signature` → `401` ถ้าไม่ถูก) |
 | POST | `/orders/{orderId}/line` | – | `{ idToken }` จาก LIFF → ผูก LINE กับออเดอร์ `204` · `400 INVALID_LINE_TOKEN`, `409 LINE_ALREADY_LINKED`, `409 ORDER_CLOSED` |
+| POST | `/line/me/orders` | – | `{ idToken }` จาก LIFF → ออเดอร์ที่ผูกกับ LINE คนนี้ ใหม่สุดก่อน (ไม่รวม Expired/Cancelled) `[{ orderId, orderNo, eventName, status, total, runnerCount, deliveryType, trackingNo, createdAt }]` · ตั๋วดึงต่อจาก `/orders/{orderId}/tickets` · `400 INVALID_LINE_TOKEN` |
 | POST | `/auth/line/callback` | – | LINE Login callback เชื่อม `LineAccount` กับ Order |
 
 ### POST `/events/{slug}/orders`
