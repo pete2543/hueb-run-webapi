@@ -172,6 +172,48 @@ public sealed class LineLinkTests(PostgresFixture pg) : LineTestBase(pg)
         Assert.Single(await Outbox(userId));
     }
 
+    // ---------- ออเดอร์ของฉัน (POST /line/me/orders) ----------
+
+    private Task<HttpResponseMessage> MyOrders(string? idToken) =>
+        Client.PostAsJsonAsync("/api/v1/line/me/orders", new { idToken });
+
+    [Fact]
+    public async Task My_orders_lists_only_this_line_users_open_orders_newest_first()
+    {
+        var token = await Token();
+        var paid = await CreateOrderOk();
+        var pending = await CreateOrderOk(Request(Runner(firstName: "สอง"), Runner(firstName: "สาม")));
+        var cancelled = await CreateOrderOk();
+        var someoneElses = await CreateOrderOk();
+        foreach (var o in new[] { paid, pending, cancelled }) await Link(o.OrderId, token);
+        await Link(someoneElses.OrderId, await Token("คนอื่น"));
+        await PayOrder(paid);
+        await using (var db = Pg.CreateDbContext())
+            await db.Orders.Where(o => o.Id == cancelled.OrderId).ExecuteUpdateAsync(s => s.SetProperty(o => o.Status, OrderStatus.Cancelled));
+
+        var res = await MyOrders(token);
+        Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+        var list = (await res.Content.ReadFromJsonAsync<JsonElement>()).EnumerateArray().ToList();
+        Assert.Equal([pending.OrderId, paid.OrderId], list.Select(o => o.GetProperty("orderId").GetGuid()));
+        Assert.Equal(("Pending", 2), (list[0].GetProperty("status").GetString(), list[0].GetProperty("runnerCount").GetInt32()));
+        Assert.Equal("Paid", list[1].GetProperty("status").GetString());
+        Assert.False(string.IsNullOrEmpty(list[1].GetProperty("eventName").GetString()));
+    }
+
+    [Fact]
+    public async Task My_orders_hides_expired_orders_and_refuses_bad_tokens()
+    {
+        var token = await Token();
+        var order = await CreateOrderOk();
+        await Link(order.OrderId, token);
+        await using (var db = Pg.CreateDbContext())   // เลยเวลาแต่ job ยังไม่เปลี่ยนสถานะ
+            await db.Orders.Where(o => o.Id == order.OrderId).ExecuteUpdateAsync(s => s.SetProperty(o => o.ExpiresAt, Factory.Time.GetUtcNow().UtcDateTime.AddMinutes(-1)));
+        Assert.Empty((await (await MyOrders(token)).Content.ReadFromJsonAsync<JsonElement>()).EnumerateArray());
+
+        foreach (var bad in new string?[] { null, "", "unknown-token" })
+            Assert.Equal(HttpStatusCode.BadRequest, (await MyOrders(bad)).StatusCode);
+    }
+
     private Task<HttpResponseMessage> Follow(string userId)
     {
         var body = $$"""{ "events": [ { "type": "follow", "source": { "type": "user", "userId": "{{userId}}" } } ] }""";
