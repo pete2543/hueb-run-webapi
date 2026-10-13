@@ -240,6 +240,8 @@
 - `POST /admin/broadcasts/{id}/cancel` — ใช้ได้กับ Draft/Scheduled/Sending; ข้อความที่ส่งไปแล้วเรียกคืนไม่ได้
 
 ## 8. การเปลี่ยนแปลงฝั่งนักวิ่ง (ผลข้างเคียง)
+`GET /orders/{id}` มี `line: { linked, following }` — ได้รับแจ้งเตือนเมื่อทั้งคู่เป็น `true` (ไม่ส่ง LINE userId ออกมา) ใช้แสดงสถานะการ์ดผูก LINE
+
 `POST /orders/{orderId}/line` `{ idToken }` → `204` ผูก LINE (LIFF `liff.getIDToken()`) กับออเดอร์เพื่อรับแจ้งเตือน: `400 INVALID_LINE_TOKEN`, `409 LINE_ALREADY_LINKED`, `409 ORDER_CLOSED`
 
 `GET /orders/{id}/payment` → `payment` มี `note` เพิ่ม (เหตุผลที่เจ้าหน้าที่ปฏิเสธ แสดงให้นักวิ่งเห็นถ้าไม่ null)

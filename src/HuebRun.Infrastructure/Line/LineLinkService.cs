@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 namespace HuebRun.Infrastructure.Line;
 
 /// ผูก LINE ของนักวิ่งกับออเดอร์ (นักวิ่งล็อกอิน LIFF แล้วส่ง ID token มา) เพื่อให้ส่งแจ้งเตือนเข้า LINE ได้
-public sealed class LineLinkService(AppDbContext db, ILineIdentityVerifier verifier, TimeProvider time)
+public sealed class LineLinkService(AppDbContext db, ILineIdentityVerifier verifier, NotificationEnqueuer notifications, TimeProvider time)
 {
     public async Task LinkOrderAsync(Guid orderId, string? idToken, CancellationToken ct)
     {
@@ -27,5 +27,9 @@ public sealed class LineLinkService(AppDbContext db, ILineIdentityVerifier verif
         var linked = await db.Orders.Where(o => o.Id == orderId && (o.LineAccountId == null || o.LineAccountId == accountId))
             .ExecuteUpdateAsync(s => s.SetProperty(o => o.LineAccountId, accountId), ct);
         if (linked == 0) throw LineErrors.AlreadyLinked();
+
+        // จ่ายไปก่อนผูก LINE: ส่ง "ชำระเงินสำเร็จ" ย้อนหลัง (ถ้าเป็นเพื่อนอยู่แล้ว; ถ้ายัง ส่งตอน follow)
+        if (status == OrderStatus.Paid)
+            await notifications.BackfillOrderPaidAsync([orderId], ct);
     }
 }

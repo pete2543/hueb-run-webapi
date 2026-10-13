@@ -7,7 +7,10 @@ public sealed record OrderResponse(
     decimal SubTotal, decimal DiscountAmount, decimal ShippingFee, decimal Total, decimal PayableAmount,
     DateTime CreatedAt, DateTime ExpiresAt, DateTime? PaidAt, string? PromoCode,
     OrderContactResponse Contact, OrderShippingResponse Shipping, IReadOnlyList<OrderRunnerResponse> Runners,
-    OrderPaymentResponse? Payment);
+    OrderPaymentResponse? Payment, OrderLineResponse Line);
+
+/// สถานะ LINE ของออเดอร์ (ไม่ส่ง LINE userId ออกไป): ได้รับแจ้งเตือนเมื่อ Linked และ Following
+public sealed record OrderLineResponse(bool Linked, bool Following);
 
 public sealed record OrderPaymentResponse(int PaymentId, PaymentStatus Status, string? RejectReason);
 

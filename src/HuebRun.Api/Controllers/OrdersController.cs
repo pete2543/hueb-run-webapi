@@ -35,7 +35,8 @@ public sealed class OrdersController(AppDbContext db, TimeProvider time) : Contr
                 r.Id, r.TitleId, r.FirstName, r.LastName,
                 new IdName(r.EventDistance.Id, r.EventDistance.Name),
                 new ShirtSizeRef(r.EventShirtSize.Id, r.EventShirtSize.Size),
-                r.PricePaid, r.BibNumber)).ToList(), payment);
+                r.PricePaid, r.BibNumber)).ToList(), payment,
+            new OrderLineResponse(o.LineAccountId != null, o.LineAccount?.IsFollowing == true));
     }
 
     [HttpGet("tickets")]
@@ -53,6 +54,7 @@ public sealed class OrdersController(AppDbContext db, TimeProvider time) : Contr
         await db.Orders.AsNoTracking()
             .Include(o => o.ShippingOption)
             .Include(o => o.PromoCode)
+            .Include(o => o.LineAccount)
             .Include(o => o.Registrations).ThenInclude(r => r.EventDistance)
             .Include(o => o.Registrations).ThenInclude(r => r.EventShirtSize)
             .AsSplitQuery()

@@ -92,7 +92,7 @@ multipart ฟิลด์ `file` (.jpg .jpeg .png .webp ไม่เกิน 5 
 - `422 SLIP_REJECTED` details `{ paymentId, reason: INVALID_SLIP | AMOUNT_MISMATCH | WRONG_RECEIVER | DUPLICATE_SLIP }` — อัปโหลดใหม่ได้
 - `400 VALIDATION_ERROR` (`details.file`), `404 ORDER_NOT_FOUND`, `409 ORDER_ALREADY_PAID`, `409 ORDER_NOT_PAYABLE`, `409 PAYMENT_IN_PROGRESS`, `409 SLIP_DUPLICATE`
 
-`GET /orders/{id}` มีฟิลด์ `payment: { paymentId, status, rejectReason } | null` (`GET /orders/{id}/payment` มี `note` เพิ่ม = เหตุผลที่เจ้าหน้าที่ปฏิเสธ) (ล่าสุด)
+`GET /orders/{id}` มีฟิลด์ `line: { linked, following }` และ `payment: { paymentId, status, rejectReason } | null` (`GET /orders/{id}/payment` มี `note` เพิ่ม = เหตุผลที่เจ้าหน้าที่ปฏิเสธ) (ล่าสุด)
 ออเดอร์ยอด 0 บาท (โค้ดฟรี + รับเอง) เป็น `Paid` ทันทีตอนสร้าง `payableAmount = 0`
 
 ## Admin
